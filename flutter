@@ -1,0 +1,16 @@
+#!/bin/bash
+# Flutter wrapper script for web-server mode
+
+echo "Starting Restaurant Store Web Server..."
+echo "Note: This is a Node.js/Express implementation"
+echo ""
+
+# Check if dependencies are installed
+if [ ! -d "node_modules" ]; then
+    echo "Installing dependencies..."
+    npm install
+fi
+
+# Start the server
+echo "Starting web server on http://localhost:3000"
+npm start
