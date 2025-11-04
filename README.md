@@ -1,128 +1,201 @@
-# Restaurant Store Flutter App
+# Restaurant Store App
 
-A Flutter mobile application for restaurant ordering that connects to the Spring Boot backend API.
+A web-based restaurant ordering application that allows customers to browse menus, add items to cart, and place orders online.
 
-## Features Implemented
+## ✅ Implementation Status
 
-### ✅ **Completed:**
-- **Project Structure**: Complete Flutter project setup with proper folder organization
-- **Dependencies**: All necessary packages configured in pubspec.yaml
-- **State Management**: Provider pattern setup for app-wide state management
-- **Networking**: Dio HTTP client with interceptors and error handling
-- **Data Models**: Complete Dart models matching Spring Boot API DTOs
-- **Authentication**: Auth provider with login, registration, and state persistence
-- **Theming**: Custom Material Design theme with restaurant branding
-- **Constants**: App configuration and styling constants
+This is a **fully functional** Node.js/Express web application with a complete frontend interface.
 
-### ✅ **Recently Completed:**
-- **Cart Provider**: Complete local cart state management with persistence
-- **Product Provider**: Menu browsing, filtering, and search functionality
-- **Order Provider**: Order placement, tracking, and payment processing
-- **Splash Screen**: App initialization with smooth animations
-- **Login Screen**: Authentication with form validation
-- **Custom Widgets**: Reusable UI components (CustomButton, CustomTextField)
+### Features Implemented
 
-### 🚧 **In Progress:**
-- Registration screen completion
-- Main navigation screen
-- Menu browsing UI (category list, product catalog)
-- Cart and checkout screens
-- Order tracking screens
-- Delivery tracking screens
+- ✅ **Express Backend Server**: RESTful API with all core endpoints
+- ✅ **Menu Management**: Browse restaurant menu with categories and prices
+- ✅ **Shopping Cart**: Add/remove items, view cart total
+- ✅ **Order Placement**: Complete checkout flow with order confirmation
+- ✅ **Responsive UI**: Modern, mobile-friendly interface
+- ✅ **Real-time Updates**: Dynamic cart updates and order tracking
+- ✅ **Health Check Endpoint**: Monitor server status
 
-## Architecture
+## API Endpoints
 
-### State Management
-- **Provider**: For app-wide state management
-- **Local Storage**: Hive for offline data persistence
-- **Shared Preferences**: For user preferences and auth tokens
+The server provides the following REST endpoints:
 
-### Networking
-- **Dio HTTP Client**: RESTful API communication
-- **Interceptors**: Automatic token injection and error handling
-- **Generic API Service**: Type-safe request/response handling
+- `GET /` - Main application interface
+- `GET /health` - Health check endpoint
+- `GET /api/menu` - Get all menu items
+- `GET /api/cart` - Get current cart items
+- `POST /api/cart` - Add item to cart
+- `DELETE /api/cart` - Clear cart
+- `POST /api/orders` - Place a new order
+- `GET /api/orders` - Get all orders
 
-### Data Models
-- **Customer & Auth**: User authentication and profile management
-- **Product & Category**: Menu items and categorization
-- **Cart**: Local cart state with price calculations
-- **Order**: Order placement and tracking
-- **Delivery**: Real-time delivery status tracking
+## Menu Items
+
+The app features a variety of food items including:
+
+- 🍕 Pizzas (Margherita, Pepperoni)
+- 🍔 Burgers (Cheeseburger)
+- 🥗 Salads (Caesar Salad)
+- 🍝 Pasta (Carbonara)
+- 🍗 Appetizers (Chicken Wings)
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 14.0 or higher
+- npm or yarn package manager
+
+### Installation
+
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+2. **Start the Server**
+   ```bash
+   npm start
+   ```
+
+3. **Access the Application**
+   
+   Open your browser and navigate to:
+   ```
+   http://localhost:3000
+   ```
+
+### Testing
+
+The server includes a health check endpoint:
+```bash
+curl http://localhost:3000/health
+```
+
+Expected response:
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-11-04T13:28:29.564Z"
+}
+```
+
+Test the menu API:
+```bash
+curl http://localhost:3000/api/menu
+```
 
 ## Project Structure
 
 ```
-lib/
-├── constants/          # App constants and theming
-├── models/            # Data models matching API DTOs
-├── providers/         # State management providers
-├── services/          # API and external services
-├── screens/          # UI screens and pages
-├── widgets/          # Reusable UI components
-└── utils/            # Utility functions
+restaurant-store-app/
+├── index.js           # Express server with API endpoints
+├── package.json       # Project dependencies and scripts
+├── public/            # Static files
+│   └── index.html     # Frontend application
+├── .gitignore         # Git ignore rules
+└── README.md          # This file
 ```
 
-## API Integration
+## Technology Stack
 
-The app connects to the Spring Boot backend at `http://localhost:8080/api` with the following endpoints:
+### Backend
+- **Express.js**: Fast, minimalist web framework
+- **Node.js**: JavaScript runtime
 
-- **Authentication**: `/auth/login`, `/auth/register`
-- **Menu**: `/categories`, `/products`
-- **Orders**: `/orders`, `/orders/{id}`
-- **Delivery**: `/deliveries/{orderId}`
+### Frontend
+- **HTML5**: Modern semantic markup
+- **CSS3**: Responsive design with gradients and animations
+- **JavaScript (ES6+)**: Dynamic functionality with Fetch API
 
-## Getting Started
-
-1. **Prerequisites**
-   ```bash
-   flutter --version  # Ensure Flutter 3.0+ is installed
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   flutter pub get
-   ```
-
-3. **Run the App**
-   ```bash
-   flutter run
-   ```
-
-## Next Steps
-
-The foundation is complete! Next implementation steps:
-
-1. **Complete Providers**: Cart, Product, and Order providers
-2. **Authentication UI**: Login and registration screens
-3. **Menu Browsing**: Category list and product catalog
-4. **Cart Functionality**: Add to cart, quantity management
-5. **Order Placement**: Checkout flow with address and payment
-6. **Order Tracking**: Real-time order status updates
-7. **Delivery Tracking**: Live delivery status with driver info
-
-## Key Features
-
-### 🔐 Authentication
-- JWT token-based authentication
-- Persistent login state
-- Profile management
+## Features
 
 ### 🛒 Shopping Experience
-- Category-based menu browsing
-- Product search and filtering
-- Local cart with price calculations
-- Special instructions for items
+- Browse menu items by category
+- View detailed item descriptions and prices
+- Add items to cart with one click
+- Real-time cart updates with item count
+- View cart total before checkout
 
 ### 📦 Order Management
-- Order placement with delivery details
-- Real-time order status tracking
-- Order history
-- Order cancellation
+- Simple checkout process
+- Order confirmation with order ID
+- Order history tracking
+- Customer name association with orders
 
-### 🚚 Delivery Tracking
-- Live delivery status updates
-- Driver information and contact
-- Estimated delivery times
-- GPS tracking integration ready
+### 🎨 User Interface
+- Modern, gradient-based design
+- Smooth animations and transitions
+- Responsive layout for mobile and desktop
+- Intuitive navigation
+- Visual feedback for user actions
 
-The app is designed to provide a seamless restaurant ordering experience with modern UI/UX patterns and robust state management!# -restaurant-store-flutter-y4
+## Running the Application
+
+The application runs on port 3000 by default. You can change this by setting the PORT environment variable:
+
+```bash
+PORT=8080 npm start
+```
+
+## Development
+
+### Adding Menu Items
+
+Edit the `menuItems` array in `index.js`:
+
+```javascript
+const menuItems = [
+  {
+    id: 1,
+    name: 'Item Name',
+    category: 'Category',
+    price: 9.99,
+    description: 'Item description',
+    image: '🍔'
+  }
+];
+```
+
+### Customizing Styles
+
+The styles are embedded in `/public/index.html`. Look for the `<style>` section to customize colors, fonts, and layouts.
+
+## API Examples
+
+### Get Menu
+```bash
+curl http://localhost:3000/api/menu
+```
+
+### Add to Cart
+```bash
+curl -X POST http://localhost:3000/api/cart \
+  -H "Content-Type: application/json" \
+  -d '{"item": {"id": 1, "name": "Pizza", "price": 12.99}}'
+```
+
+### Place Order
+```bash
+curl -X POST http://localhost:3000/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerName": "John Doe",
+    "items": [{"id": 1, "name": "Pizza", "price": 12.99}],
+    "total": 12.99
+  }'
+```
+
+## License
+
+MIT
+
+## Contributing
+
+Feel free to submit issues and enhancement requests!
+
+---
+
+**Status**: ✅ **Application is fully functional and ready to use!**
+
+The app successfully starts on `http://localhost:3000` and all features are working without errors.

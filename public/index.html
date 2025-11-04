@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Store - Order Food Online</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-item {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .item-icon {
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .item-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .item-category {
+            color: #667eea;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .item-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-price {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .cart-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .cart-title {
+            font-size: 1.8em;
+            color: #333;
+        }
+
+        .cart-count {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .cart-items {
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            align-items: center;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-total {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: right;
+            color: #667eea;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-checkout {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.1em;
+        }
+
+        .btn-clear {
+            background: #dc3545;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #999;
+            padding: 30px;
+            font-style: italic;
+        }
+
+        .status-message {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍽️ Restaurant Store</h1>
+            <p class="subtitle">Order delicious food online and get it delivered to your door</p>
+        </header>
+
+        <div id="statusMessage" class="status-message"></div>
+
+        <div class="cart-section">
+            <div class="cart-header">
+                <h2 class="cart-title">🛒 Your Cart</h2>
+                <span class="cart-count" id="cartCount">0 items</span>
+            </div>
+            <div id="cartItems" class="cart-items">
+                <div class="empty-cart">Your cart is empty. Add some delicious items!</div>
+            </div>
+            <div id="cartActions" class="cart-actions" style="display: none;">
+                <button class="btn btn-clear" onclick="clearCart()">Clear Cart</button>
+                <button class="btn btn-checkout" onclick="checkout()">Checkout</button>
+            </div>
+        </div>
+
+        <h2 style="color: white; margin-bottom: 20px; font-size: 2em;">📋 Menu</h2>
+        <div id="menuGrid" class="menu-grid">
+            <p style="color: white;">Loading menu...</p>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        let menuItems = [];
+
+        async function loadMenu() {
+            try {
+                const response = await fetch('/api/menu');
+                menuItems = await response.json();
+                displayMenu();
+            } catch (error) {
+                console.error('Error loading menu:', error);
+                showStatus('Error loading menu. Please refresh the page.', 'error');
+            }
+        }
+
+        function displayMenu() {
+            const menuGrid = document.getElementById('menuGrid');
+            menuGrid.innerHTML = menuItems.map(item => `
+                <div class="menu-item">
+                    <div class="item-icon">${item.image}</div>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-category">${item.category}</div>
+                    <div class="item-description">${item.description}</div>
+                    <div class="item-footer">
+                        <span class="item-price">$${item.price.toFixed(2)}</span>
+                        <button class="btn" onclick="addToCart(${item.id})">Add to Cart</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(itemId) {
+            const item = menuItems.find(i => i.id === itemId);
+            if (item) {
+                cart.push({...item, cartId: Date.now()});
+                updateCart();
+                showStatus(`${item.name} added to cart!`, 'success');
+            }
+        }
+
+        function updateCart() {
+            const cartCount = document.getElementById('cartCount');
+            const cartItems = document.getElementById('cartItems');
+            const cartActions = document.getElementById('cartActions');
+
+            cartCount.textContent = `${cart.length} ${cart.length === 1 ? 'item' : 'items'}`;
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<div class="empty-cart">Your cart is empty. Add some delicious items!</div>';
+                cartActions.style.display = 'none';
+            } else {
+                const total = cart.reduce((sum, item) => sum + item.price, 0);
+                cartItems.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div style="font-weight: bold;">${item.image} ${item.name}</div>
+                            <div style="color: #666; font-size: 0.9em;">${item.category}</div>
+                        </div>
+                        <div style="font-weight: bold; color: #667eea;">$${item.price.toFixed(2)}</div>
+                        <button class="btn" onclick="removeFromCart(${item.cartId})" style="background: #dc3545; padding: 5px 10px;">Remove</button>
+                    </div>
+                `).join('') + `
+                    <div class="cart-total">Total: $${total.toFixed(2)}</div>
+                `;
+                cartActions.style.display = 'flex';
+            }
+        }
+
+        function removeFromCart(cartId) {
+            cart = cart.filter(item => item.cartId !== cartId);
+            updateCart();
+            showStatus('Item removed from cart', 'success');
+        }
+
+        function clearCart() {
+            if (confirm('Are you sure you want to clear your cart?')) {
+                cart = [];
+                updateCart();
+                showStatus('Cart cleared', 'success');
+            }
+        }
+
+        async function checkout() {
+            if (cart.length === 0) {
+                showStatus('Your cart is empty!', 'error');
+                return;
+            }
+
+            const customerName = prompt('Please enter your name for the order:');
+            if (!customerName) return;
+
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        customerName,
+                        items: cart,
+                        total
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showStatus(`Order #${result.order.id} placed successfully! Thank you, ${customerName}!`, 'success');
+                    cart = [];
+                    updateCart();
+                }
+            } catch (error) {
+                console.error('Error placing order:', error);
+                showStatus('Error placing order. Please try again.', 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.style.background = type === 'error' ? '#dc3545' : '#4caf50';
+            statusEl.classList.add('show');
+            setTimeout(() => {
+                statusEl.classList.remove('show');
+            }, 3000);
+        }
+
+        loadMenu();
+    </script>
+</body>
+</html>
