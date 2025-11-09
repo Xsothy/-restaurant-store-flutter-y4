@@ -28,7 +28,7 @@ This guide provides comprehensive information for developers working on the Rest
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd restaurant-store-flutter
+   cd restaurant_store_flutter
    ```
 
 2. **Install dependencies**
@@ -61,7 +61,7 @@ chmod +x scripts/dev.sh
 ## 🏗️ Project Structure
 
 ```
-restaurant-store-flutter/
+restaurant_store_flutter/
 ├── lib/
 │   ├── constants/          # App constants and themes
 │   │   ├── app_constants.dart    # Global constants
