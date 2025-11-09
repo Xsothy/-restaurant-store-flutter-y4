@@ -70,7 +70,7 @@ class Cart {
   
   double get tax => subtotal * 0.08; // 8% tax rate
   
-  double get deliveryFee => subtotal >= 10.0 ? 0.0 : 2.99; // Free delivery for orders over $10
+  double get deliveryFee => subtotal >= 10.0 ? 0.0 : 2.99; // Free delivery when subtotal is $10 or greater
   
   double get total => subtotal + tax + deliveryFee;
   
