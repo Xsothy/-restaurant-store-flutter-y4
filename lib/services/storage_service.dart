@@ -9,13 +9,20 @@ class StorageService {
   static late SharedPreferences _prefs;
   static late Box _cartBox;
   static late Box _userBox;
+  static bool _initialized = false;
 
   static Future<void> init() async {
+    if (_initialized) {
+      return;
+    }
+
     _prefs = await SharedPreferences.getInstance();
-    
+
     // Initialize Hive boxes
-    _cartBox = await Hive.openBox('cart');
-    _userBox = await Hive.openBox('user');
+    _cartBox = Hive.isBoxOpen('cart') ? Hive.box('cart') : await Hive.openBox('cart');
+    _userBox = Hive.isBoxOpen('user') ? Hive.box('user') : await Hive.openBox('user');
+
+    _initialized = true;
   }
 
   // Authentication Token Management
