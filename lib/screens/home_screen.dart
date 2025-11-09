@@ -7,7 +7,7 @@ import '../providers/cart_provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/routes.dart';
 import '../widgets/custom_button.dart';
-import '../widgets/search_text_field.dart';
+import '../widgets/custom_text_field.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
