@@ -151,6 +151,75 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     );
   }
 
+  Widget _buildStatusChip(OrderStatus status) {
+    final theme = Theme.of(context);
+
+    late final String label;
+    late final Color color;
+    late final IconData icon;
+
+    switch (status) {
+      case OrderStatus.pending:
+        label = 'Pending';
+        color = theme.colorScheme.outline;
+        icon = Icons.schedule;
+        break;
+      case OrderStatus.confirmed:
+        label = 'Confirmed';
+        color = theme.colorScheme.primary;
+        icon = Icons.check_circle_outline;
+        break;
+      case OrderStatus.preparing:
+        label = 'Preparing';
+        color = Colors.orange;
+        icon = Icons.restaurant_menu;
+        break;
+      case OrderStatus.ready:
+        label = 'Ready';
+        color = Colors.teal;
+        icon = Icons.checklist_rtl;
+        break;
+      case OrderStatus.outForDelivery:
+        label = 'On the way';
+        color = Colors.indigo;
+        icon = Icons.delivery_dining;
+        break;
+      case OrderStatus.delivered:
+        label = 'Delivered';
+        color = Colors.green;
+        icon = Icons.done_all;
+        break;
+      case OrderStatus.cancelled:
+        label = 'Cancelled';
+        color = theme.colorScheme.error;
+        icon = Icons.cancel_outlined;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTimeline(Order order) {
     final steps = [
       _OrderStep(OrderStatus.pending, 'Order placed', 'We received your order'),
