@@ -49,7 +49,7 @@ class AppRouter {
           // Menu
           GoRoute(
             name: AppConstants.menuScreen,
-            path: '/menu',
+            path: 'menu',
             builder: (context, state) {
               final categoryId = state.uri.queryParameters['categoryId'];
               return MenuScreen(categoryId: categoryId);
@@ -58,7 +58,7 @@ class AppRouter {
               // Product Detail
               GoRoute(
                 name: AppConstants.productDetailScreen,
-                path: '/product/:productId',
+                path: 'product/:productId',
                 builder: (context, state) {
                   final productId = int.parse(state.pathParameters['productId']!);
                   return ProductDetailScreen(productId: productId);
@@ -66,42 +66,42 @@ class AppRouter {
               ),
             ],
           ),
-          
+
           // Cart
           GoRoute(
             name: AppConstants.cartScreen,
-            path: '/cart',
+            path: 'cart',
             builder: (context, state) => const CartScreen(),
             routes: [
               // Checkout
               GoRoute(
                 name: AppConstants.checkoutScreen,
-                path: '/checkout',
+                path: 'checkout',
                 builder: (context, state) => const CheckoutScreen(),
               ),
             ],
           ),
-          
+
           // Order Tracking
           GoRoute(
             name: AppConstants.orderTrackingScreen,
-            path: '/order/:orderId/tracking',
+            path: 'order/:orderId/tracking',
             builder: (context, state) {
               final orderId = state.pathParameters['orderId']!;
               return OrderTrackingScreen(orderId: orderId);
             },
           ),
-          
+
           // Profile
           GoRoute(
             name: AppConstants.profileScreen,
-            path: '/profile',
+            path: 'profile',
             builder: (context, state) => const ProfileScreen(),
             routes: [
               // Order History
               GoRoute(
                 name: AppConstants.orderHistoryScreen,
-                path: '/orders',
+                path: 'orders',
                 builder: (context, state) => const OrderHistoryScreen(),
               ),
             ],
