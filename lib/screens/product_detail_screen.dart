@@ -5,6 +5,8 @@ import '../models/product.dart';
 import '../providers/cart_provider.dart';
 import '../providers/product_provider.dart';
 import '../utils/routes.dart';
+import '../widgets/cached_app_image.dart';
+import '../widgets/cart_icon_button.dart';
 import '../widgets/custom_button.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -33,10 +35,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       appBar: AppBar(
         title: const Text('Product Details'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () => NavigationHelper.navigateToCart(context),
-          ),
+          CartIconButton(onPressed: () => NavigationHelper.navigateToCart(context)),
         ],
       ),
       body: Consumer2<ProductProvider, CartProvider>(
@@ -60,18 +59,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
+                CachedAppImage(
+                  imageUrl: product.imageUrl,
                   height: 220,
                   width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                  ),
-                  child: Icon(
-                    Icons.fastfood,
-                    size: 72,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                  borderRadius: 20,
+                  fit: BoxFit.cover,
                 ),
                 const SizedBox(height: 24),
                 Text(

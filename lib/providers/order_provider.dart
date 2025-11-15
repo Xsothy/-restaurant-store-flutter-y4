@@ -77,7 +77,7 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> createOrder({
+  Future<Order?> createOrder({
     required List<CartItem> items,
     String orderType = 'DELIVERY',
     String? deliveryAddress,
@@ -110,12 +110,12 @@ class OrderProvider extends ChangeNotifier {
 
       _isCreatingOrder = false;
       notifyListeners();
-      return true;
+      return order;
     } catch (e) {
       _errorMessage = e.toString();
       _isCreatingOrder = false;
       notifyListeners();
-      return false;
+      return null;
     }
   }
 

@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../constants/app_constants.dart';
 import '../models/cart.dart';
 import '../providers/cart_provider.dart';
+import '../utils/routes.dart';
+import '../widgets/cached_app_image.dart';
 import '../widgets/custom_button.dart';
 
 class CartScreen extends StatelessWidget {
@@ -109,18 +111,11 @@ class CartScreen extends StatelessWidget {
       child: Row(
         children: [
           // Product Image
-          Container(
+          CachedAppImage(
+            imageUrl: cartItem.productImageUrl,
             width: 80,
             height: 80,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            ),
-            child: Icon(
-              Icons.fastfood,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-              size: 40,
-            ),
+            borderRadius: 10,
           ),
           
           const SizedBox(width: 12),
@@ -281,14 +276,11 @@ class CartScreen extends StatelessWidget {
           const SizedBox(height: 24),
           CustomButton(
             text: 'Proceed to Checkout',
-            onPressed: () {
-              // TODO: Navigate to checkout
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Checkout coming soon!')),
-              );
-            },
+            onPressed:
+                cartProvider.isLoading ? null : () => NavigationHelper.navigateToCheckout(context),
             width: double.infinity,
             height: 50,
+            isLoading: cartProvider.isLoading,
           ),
         ],
       ),

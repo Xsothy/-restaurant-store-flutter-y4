@@ -7,6 +7,8 @@ import '../providers/auth_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/product_provider.dart';
 import '../utils/routes.dart';
+import '../widgets/cached_app_image.dart';
+import '../widgets/cart_icon_button.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 
@@ -60,10 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     final actions = <Widget>[
-      IconButton(
-        icon: const Icon(Icons.shopping_cart_outlined),
-        onPressed: () => NavigationHelper.navigateToCart(context),
-      ),
+      CartIconButton(onPressed: () => NavigationHelper.navigateToCart(context)),
     ];
 
     switch (_selectedIndex) {
@@ -327,18 +326,11 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Container(
+              CachedAppImage(
+                imageUrl: product.imageUrl,
                 height: 80,
                 width: 80,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                ),
-                child: Icon(
-                  Icons.fastfood,
-                  size: 36,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                borderRadius: 12,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -392,18 +384,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                height: 100,
+              CachedAppImage(
+                imageUrl: product.imageUrl,
+                height: 120,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                ),
-                child: Icon(
-                  Icons.fastfood,
-                  size: 40,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                borderRadius: 12,
               ),
               const SizedBox(height: 12),
               Text(
