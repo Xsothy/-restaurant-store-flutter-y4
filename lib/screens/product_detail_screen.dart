@@ -108,6 +108,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   text: 'Add to cart',
                   icon: const Icon(Icons.add_shopping_cart),
                   onPressed: () async {
+                    if (product == null) {
+                      throw Error();
+                    }
                     final success = await cartProvider.addToCart(product, quantity: _quantity);
                     if (!mounted) return;
                     final message = success
