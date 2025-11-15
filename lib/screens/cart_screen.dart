@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_constants.dart';
+import '../models/cart.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/custom_button.dart';
 
@@ -94,7 +95,7 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCartItem(BuildContext context, cartItem, CartProvider cartProvider) {
+  Widget _buildCartItem(BuildContext context, CartItem cartItem, CartProvider cartProvider) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -130,7 +131,7 @@ class CartScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  cartItem.product.name,
+                  cartItem.productName,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -139,24 +140,19 @@ class CartScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  cartItem.product.formattedPrice,
+                  cartItem.formattedPrice,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (cartItem.specialInstructions != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Note: ${cartItem.specialInstructions}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6),
-                      fontStyle: FontStyle.italic,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                const SizedBox(height: 4),
+                Text(
+                  cartItem.formattedSubtotal,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6),
+                      ),
+                ),
               ],
             ),
           ),

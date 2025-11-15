@@ -38,18 +38,6 @@ class StorageService {
     await _prefs.remove(AppConstants.tokenKey);
   }
 
-  static Future<void> saveRefreshToken(String refreshToken) async {
-    await _prefs.setString('${AppConstants.tokenKey}_refresh', refreshToken);
-  }
-
-  static String? getRefreshToken() {
-    return _prefs.getString('${AppConstants.tokenKey}_refresh');
-  }
-
-  static Future<void> removeRefreshToken() async {
-    await _prefs.remove('${AppConstants.tokenKey}_refresh');
-  }
-
   // User Data Management
   static Future<void> saveUser(User user) async {
     final userJson = jsonEncode(user.toJson());
@@ -307,7 +295,6 @@ class StorageService {
   // Clear all data (for logout)
   static Future<void> clearAllData() async {
     await removeAuthToken();
-    await removeRefreshToken();
     await removeUser();
     await clearCart();
     // Keep some data like theme, language, and preferences

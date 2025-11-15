@@ -58,11 +58,10 @@ class AuthProvider extends ChangeNotifier {
 
       // Save token and user data
       await StorageService.saveAuthToken(response.token);
-      await StorageService.saveRefreshToken(response.refreshToken);
-      await StorageService.saveUser(response.user);
+      await StorageService.saveUser(response.customer);
 
       // Update state
-      _user = response.user;
+      _user = response.customer;
       _isAuthenticated = true;
       ApiService.updateAuthToken(response.token);
 
@@ -88,11 +87,11 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
 
     try {
+      final fullName = '$firstName $lastName'.trim();
       final registerRequest = RegisterRequest(
-        firstName: firstName,
-        lastName: lastName,
+        name: fullName,
         email: email,
-        phone: phone,
+        phone: phone.isNotEmpty ? phone : null,
         password: password,
         address: address,
       );
@@ -100,11 +99,10 @@ class AuthProvider extends ChangeNotifier {
 
       // Save token and user data
       await StorageService.saveAuthToken(response.token);
-      await StorageService.saveRefreshToken(response.refreshToken);
-      await StorageService.saveUser(response.user);
+      await StorageService.saveUser(response.customer);
 
       // Update state
-      _user = response.user;
+      _user = response.customer;
       _isAuthenticated = true;
       ApiService.updateAuthToken(response.token);
 
@@ -131,7 +129,6 @@ class AuthProvider extends ChangeNotifier {
 
     // Clear local storage
     await StorageService.removeAuthToken();
-    await StorageService.removeRefreshToken();
     await StorageService.removeUser();
 
     // Clear API service token
@@ -158,11 +155,17 @@ class AuthProvider extends ChangeNotifier {
       // This would typically call an update profile API
       // For now, we'll just update the local user object
       if (_user != null) {
+        String? updatedName;
+        if (firstName != null || lastName != null) {
+          final newFirst = firstName ?? _user!.firstName;
+          final newLast = lastName ?? _user!.lastName;
+          updatedName = [newFirst, newLast].where((part) => part.trim().isNotEmpty).join(' ').trim();
+        }
+
         final updatedUser = _user!.copyWith(
-          firstName: firstName,
-          lastName: lastName,
-          phone: phone,
-          address: address,
+          name: (updatedName != null && updatedName.isNotEmpty) ? updatedName : null,
+          phone: phone ?? _user!.phone,
+          address: address ?? _user!.address,
           updatedAt: DateTime.now(),
         );
 
@@ -180,19 +183,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Refresh authentication token
-  Future<bool> refreshToken() async {
-    try {
-      final refreshToken = StorageService.getRefreshToken();
-      if (refreshToken == null) return false;
-
-      // This would typically call a refresh token API
-      // For now, we'll just return true if we have a refresh token
-      return true;
-    } catch (e) {
-      await logout();
-      return false;
-    }
-  }
+  Future<bool> refreshToken() async => false;
 
   // Validate email format
   bool isValidEmail(String email) {
@@ -260,7 +251,7 @@ class AuthProvider extends ChangeNotifier {
     return _user!.firstName.isNotEmpty &&
         _user!.lastName.isNotEmpty &&
         _user!.email.isNotEmpty &&
-        _user!.phone.isNotEmpty;
+        (_user!.phone?.isNotEmpty ?? false);
   }
 
   // Reset password

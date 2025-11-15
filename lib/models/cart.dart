@@ -1,124 +1,159 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'product.dart';
-
-part 'cart.g.dart';
-
-@JsonSerializable()
 class CartItem {
-  final String id; // Unique identifier for cart item
-  final Product product;
+  final int id;
+  final int productId;
+  final String productName;
+  final String? productImageUrl;
+  final double price;
   final int quantity;
-  final List<String> customizations;
-  final String? specialInstructions;
-  final DateTime addedAt;
+  final double subtotal;
 
-  CartItem({
+  const CartItem({
     required this.id,
-    required this.product,
+    required this.productId,
+    required this.productName,
+    required this.price,
     required this.quantity,
-    required this.customizations,
-    this.specialInstructions,
-    required this.addedAt,
+    required this.subtotal,
+    this.productImageUrl,
   });
 
-  factory CartItem.fromJson(Map<String, dynamic> json) => _$CartItemFromJson(json);
-  Map<String, dynamic> toJson() => _$CartItemToJson(this);
-
-  double get subtotal => product.price * quantity;
-  
-  String get formattedSubtotal => '\$${subtotal.toStringAsFixed(2)}';
-  
-  CartItem copyWith({
-    String? id,
-    Product? product,
-    int? quantity,
-    List<String>? customizations,
-    String? specialInstructions,
-    DateTime? addedAt,
-  }) {
+  factory CartItem.fromJson(Map<String, dynamic> json) {
     return CartItem(
-      id: id ?? this.id,
-      product: product ?? this.product,
-      quantity: quantity ?? this.quantity,
-      customizations: customizations ?? this.customizations,
-      specialInstructions: specialInstructions ?? this.specialInstructions,
-      addedAt: addedAt ?? this.addedAt,
+      id: json['id'] is int ? json['id'] as int : int.tryParse('${json['id']}') ?? 0,
+      productId: json['productId'] is int
+          ? json['productId'] as int
+          : int.tryParse('${json['productId']}') ?? 0,
+      productName: json['productName']?.toString() ?? 'Unknown Item',
+      productImageUrl: json['productImageUrl']?.toString(),
+      price: json['price'] is num
+          ? (json['price'] as num).toDouble()
+          : double.tryParse('${json['price']}') ?? 0,
+      quantity: json['quantity'] is int
+          ? json['quantity'] as int
+          : int.tryParse('${json['quantity']}') ?? 0,
+      subtotal: json['subtotal'] is num
+          ? (json['subtotal'] as num).toDouble()
+          : double.tryParse('${json['subtotal']}') ?? 0,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'productId': productId,
+      'productName': productName,
+      'productImageUrl': productImageUrl,
+      'price': price,
+      'quantity': quantity,
+      'subtotal': subtotal,
+    }..removeWhere((key, value) => value == null);
+  }
+
+  double get total => price * quantity;
+
+  String get formattedPrice => '\$${price.toStringAsFixed(2)}';
+  String get formattedSubtotal => '\$${subtotal.toStringAsFixed(2)}';
 }
 
-@JsonSerializable()
 class Cart {
-  final String id;
+  final int id;
   final List<CartItem> items;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final double subtotal;
+  final double vat;
+  final double deliveryFee;
+  final double total;
+  final int itemCount;
 
-  Cart({
+  const Cart({
     required this.id,
     required this.items,
-    required this.createdAt,
-    required this.updatedAt,
+    required this.subtotal,
+    required this.vat,
+    required this.deliveryFee,
+    required this.total,
+    required this.itemCount,
   });
 
-  factory Cart.fromJson(Map<String, dynamic> json) => _$CartFromJson(json);
-  Map<String, dynamic> toJson() => _$CartToJson(this);
+  factory Cart.fromJson(Map<String, dynamic> json) {
+    return Cart(
+      id: json['id'] is int ? json['id'] as int : int.tryParse('${json['id']}') ?? 0,
+      items: (json['items'] as List?)
+              ?.map((item) => CartItem.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      subtotal: json['subtotal'] is num
+          ? (json['subtotal'] as num).toDouble()
+          : double.tryParse('${json['subtotal']}') ?? 0,
+      vat: json['vat'] is num
+          ? (json['vat'] as num).toDouble()
+          : double.tryParse('${json['vat']}') ?? 0,
+      deliveryFee: json['deliveryFee'] is num
+          ? (json['deliveryFee'] as num).toDouble()
+          : double.tryParse('${json['deliveryFee']}') ?? 0,
+      total: json['total'] is num
+          ? (json['total'] as num).toDouble()
+          : double.tryParse('${json['total']}') ?? 0,
+      itemCount: json['itemCount'] is int
+          ? json['itemCount'] as int
+          : int.tryParse('${json['itemCount']}') ?? 0,
+    );
+  }
 
-  double get subtotal {
-    return items.fold(0.0, (sum, item) => sum + item.subtotal);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'items': items.map((item) => item.toJson()).toList(),
+      'subtotal': subtotal,
+      'vat': vat,
+      'deliveryFee': deliveryFee,
+      'total': total,
+      'itemCount': itemCount,
+    };
   }
-  
-  double get tax => subtotal * 0.08; // 8% tax rate
-  
-  double get deliveryFee => subtotal >= 10.0 ? 0.0 : 2.99; // Free delivery when subtotal is $10 or greater
-  
-  double get total => subtotal + tax + deliveryFee;
-  
-  int get itemCount {
-    return items.fold(0, (sum, item) => sum + item.quantity);
-  }
-  
+
   String get formattedSubtotal => '\$${subtotal.toStringAsFixed(2)}';
-  String get formattedTax => '\$${tax.toStringAsFixed(2)}';
-  String get formattedDeliveryFee => deliveryFee == 0.0 ? 'FREE' : '\$${deliveryFee.toStringAsFixed(2)}';
+  String get formattedVat => '\$${vat.toStringAsFixed(2)}';
+  String get formattedDeliveryFee => deliveryFee == 0 ? 'FREE' : '\$${deliveryFee.toStringAsFixed(2)}';
   String get formattedTotal => '\$${total.toStringAsFixed(2)}';
-  
+
   Cart copyWith({
-    String? id,
+    int? id,
     List<CartItem>? items,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    double? subtotal,
+    double? vat,
+    double? deliveryFee,
+    double? total,
+    int? itemCount,
   }) {
     return Cart(
       id: id ?? this.id,
       items: items ?? this.items,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      subtotal: subtotal ?? this.subtotal,
+      vat: vat ?? this.vat,
+      deliveryFee: deliveryFee ?? this.deliveryFee,
+      total: total ?? this.total,
+      itemCount: itemCount ?? this.itemCount,
     );
   }
 }
 
-@JsonSerializable()
 class AddToCartRequest {
   final int productId;
   final int quantity;
-  final List<String> customizations;
-  final String? specialInstructions;
 
   AddToCartRequest({
     required this.productId,
     required this.quantity,
-    required this.customizations,
-    this.specialInstructions,
   });
 
-  factory AddToCartRequest.fromJson(Map<String, dynamic> json) => _$AddToCartRequestFromJson(json);
-  Map<String, dynamic> toJson() => _$AddToCartRequestToJson(this);
+  Map<String, dynamic> toJson() => {
+        'productId': productId,
+        'quantity': quantity,
+      };
 }
 
-@JsonSerializable()
 class UpdateCartRequest {
-  final String cartItemId;
+  final int cartItemId;
   final int quantity;
 
   UpdateCartRequest({
@@ -126,20 +161,7 @@ class UpdateCartRequest {
     required this.quantity,
   });
 
-  factory UpdateCartRequest.fromJson(Map<String, dynamic> json) => _$UpdateCartRequestFromJson(json);
-  Map<String, dynamic> toJson() => _$UpdateCartRequestToJson(this);
-}
-
-@JsonSerializable()
-class CartResponse {
-  final Cart cart;
-  final String message;
-
-  CartResponse({
-    required this.cart,
-    required this.message,
-  });
-
-  factory CartResponse.fromJson(Map<String, dynamic> json) => _$CartResponseFromJson(json);
-  Map<String, dynamic> toJson() => _$CartResponseToJson(this);
+  Map<String, dynamic> toJson() => {
+        'quantity': quantity,
+      };
 }

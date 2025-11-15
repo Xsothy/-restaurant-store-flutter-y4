@@ -3,7 +3,6 @@ import '../models/product.dart';
 import '../models/category.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
-import '../constants/app_constants.dart';
 
 class ProductProvider extends ChangeNotifier {
   List<Category> _categories = [];
@@ -159,12 +158,14 @@ class ProductProvider extends ChangeNotifier {
 
   // Load products with filters
   Future<void> loadProducts({bool resetPage = false}) async {
+    if (_isLoadingProducts) return;
+
     if (resetPage) {
       _currentPage = 1;
       _hasMoreProducts = true;
     }
 
-    if (!_hasMoreProducts) return;
+    if (!_hasMoreProducts && !resetPage) return;
 
     _isLoadingProducts = true;
     _errorMessage = null;
@@ -173,26 +174,13 @@ class ProductProvider extends ChangeNotifier {
     try {
       final products = await ApiService.getProducts(
         categoryId: _selectedCategory?.id,
-        search: _searchQuery.isNotEmpty ? _searchQuery : null,
-        isVegetarian: _isVegetarianFilter,
-        isVegan: _isVeganFilter,
-        isGlutenFree: _isGlutenFreeFilter,
-        isPopular: _isPopularFilter,
-        sortBy: _sortBy,
-        sortOrder: _sortOrder,
-        page: _currentPage,
-        limit: 20,
+        availableOnly: true,
       );
 
-      if (resetPage) {
-        _products = products;
-      } else {
-        _products.addAll(products);
-      }
-
-      // Check if there are more products
-      _hasMoreProducts = products.length == 20;
-      _currentPage++;
+      _products = products;
+      _hasMoreProducts = false;
+      _currentPage = 1;
+      _totalPages = 1;
 
       _isLoadingProducts = false;
       notifyListeners();
@@ -206,10 +194,9 @@ class ProductProvider extends ChangeNotifier {
   // Load featured products
   Future<void> loadFeaturedProducts() async {
     try {
-      _featuredProducts = await ApiService.getProducts(
-        isPopular: true,
-        limit: 10,
-      );
+      final products = await ApiService.getProducts(availableOnly: true);
+      _featuredProducts =
+          products.where((product) => product.isPopular).take(10).toList();
       notifyListeners();
     } catch (e) {
       debugPrint('Failed to load featured products: $e');
@@ -219,12 +206,11 @@ class ProductProvider extends ChangeNotifier {
   // Load popular products
   Future<void> loadPopularProducts() async {
     try {
-      _popularProducts = await ApiService.getProducts(
-        isPopular: true,
-        sortBy: 'rating',
-        sortOrder: 'desc',
-        limit: 10,
-      );
+      final products = await ApiService.getProducts(availableOnly: true);
+      _popularProducts = products
+          .where((product) => product.isPopular || product.rating >= 4)
+          .take(10)
+          .toList();
       notifyListeners();
     } catch (e) {
       debugPrint('Failed to load popular products: $e');
@@ -259,8 +245,8 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final reviews = await ApiService.getProductReviews(productId, page: page);
-      
+      final reviews = await ApiService.getProductReviews(productId);
+
       if (page == 1) {
         _productReviews = reviews;
       } else {
@@ -279,7 +265,7 @@ class ProductProvider extends ChangeNotifier {
   // Search products
   Future<void> searchProducts(String query) async {
     _searchQuery = query;
-    await loadProducts(resetPage: true);
+    notifyListeners();
   }
 
   // Filter by category
@@ -291,22 +277,22 @@ class ProductProvider extends ChangeNotifier {
   // Toggle dietary filters
   Future<void> toggleVegetarianFilter() async {
     _isVegetarianFilter = !_isVegetarianFilter;
-    await loadProducts(resetPage: true);
+    notifyListeners();
   }
 
   Future<void> toggleVeganFilter() async {
     _isVeganFilter = !_isVeganFilter;
-    await loadProducts(resetPage: true);
+    notifyListeners();
   }
 
   Future<void> toggleGlutenFreeFilter() async {
     _isGlutenFreeFilter = !_isGlutenFreeFilter;
-    await loadProducts(resetPage: true);
+    notifyListeners();
   }
 
   Future<void> togglePopularFilter() async {
     _isPopularFilter = !_isPopularFilter;
-    await loadProducts(resetPage: true);
+    notifyListeners();
   }
 
   // Toggle tags
@@ -316,7 +302,7 @@ class ProductProvider extends ChangeNotifier {
     } else {
       _selectedTags.add(tag);
     }
-    await loadProducts(resetPage: true);
+    notifyListeners();
   }
 
   // Clear all filters
@@ -337,7 +323,7 @@ class ProductProvider extends ChangeNotifier {
   Future<void> sortProducts(String sortBy, {String sortOrder = 'asc'}) async {
     _sortBy = sortBy;
     _sortOrder = sortOrder;
-    await loadProducts(resetPage: true);
+    notifyListeners();
   }
 
   // Load more products (pagination)
