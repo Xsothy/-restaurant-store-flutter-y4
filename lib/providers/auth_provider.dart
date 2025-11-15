@@ -190,6 +190,15 @@ class AuthProvider extends ChangeNotifier {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
+  // Validate phone format
+  bool isValidPhone(String phone) {
+    if (phone.isEmpty) {
+      return false;
+    }
+    const allowedChars = '0123456789-+() ';
+    return phone.split('').every((char) => allowedChars.contains(char));
+  }
+
   // Validate password strength
   String? validatePassword(String password) {
     if (password.isEmpty) return AppConstants.passwordRequired;
@@ -206,7 +215,7 @@ class AuthProvider extends ChangeNotifier {
   // Validate phone number
   String? validatePhone(String phone) {
     if (phone.isEmpty) return AppConstants.phoneRequired;
-    if (!RegExp(r'^[\d\s\-\+\(\)]+$').hasMatch(phone)) {
+    if (!isValidPhone(phone)) {
       return AppConstants.phoneInvalid;
     }
     return null;

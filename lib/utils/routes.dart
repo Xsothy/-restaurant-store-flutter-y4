@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../constants/app_constants.dart';
 import '../providers/auth_provider.dart';
 import '../screens/splash_screen.dart';
@@ -111,15 +112,22 @@ class AppRouter {
     
     // Redirect logic
     redirect: (context, state) {
-      final authProvider = context.read<AuthProvider>();
+      AuthProvider? authProvider;
+      try {
+        authProvider = Provider.of<AuthProvider>(context, listen: false);
+      } catch (_) {
+        return null;
+      }
+
       final isAuthenticated = authProvider.isAuthenticated;
+      final location = state.uri.toString();
       
       // Check if user is authenticated
       if (!isAuthenticated) {
         // Allow access to splash, login, and register screens
-        if (state.location.startsWith('/splash') ||
-            state.location.startsWith('/login') ||
-            state.location.startsWith('/register')) {
+        if (location.startsWith('/splash') ||
+            location.startsWith('/login') ||
+            location.startsWith('/register')) {
           return null;
         }
         
@@ -127,9 +135,9 @@ class AppRouter {
         return '/login';
       } else {
         // If authenticated and trying to access auth routes, redirect to home
-        if (state.location.startsWith('/login') ||
-            state.location.startsWith('/register') ||
-            state.location.startsWith('/splash')) {
+        if (location.startsWith('/login') ||
+            location.startsWith('/register') ||
+            location.startsWith('/splash')) {
           return '/home';
         }
       }

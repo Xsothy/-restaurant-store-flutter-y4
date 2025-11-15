@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show ChangeNotifier, debugPrint;
+
 import '../models/product.dart';
-import '../models/category.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 

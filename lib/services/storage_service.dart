@@ -223,13 +223,20 @@ class StorageService {
 
   static List<Map<String, dynamic>> getDeliveryAddresses() {
     final addressesStrings = _prefs.getStringList('delivery_addresses') ?? [];
-    return addressesStrings.map((addr) {
-      try {
-        return jsonDecode(addr);
-      } catch (e) {
-        return <String, dynamic>{};
-      }
-    }).where((addr) => addr.isNotEmpty).toList();
+    return addressesStrings
+        .map((addr) {
+          try {
+            final decoded = jsonDecode(addr);
+            if (decoded is Map<String, dynamic>) {
+              return Map<String, dynamic>.from(decoded);
+            }
+          } catch (e) {
+            // Ignore malformed entries and fall back to an empty map.
+          }
+          return <String, dynamic>{};
+        })
+        .where((addr) => addr.isNotEmpty)
+        .toList();
   }
 
   // Payment Methods
@@ -253,13 +260,20 @@ class StorageService {
 
   static List<Map<String, dynamic>> getPaymentMethods() {
     final methodsStrings = _prefs.getStringList('payment_methods') ?? [];
-    return methodsStrings.map((method) {
-      try {
-        return jsonDecode(method);
-      } catch (e) {
-        return <String, dynamic>{};
-      }
-    }).where((method) => method.isNotEmpty).toList();
+    return methodsStrings
+        .map((method) {
+          try {
+            final decoded = jsonDecode(method);
+            if (decoded is Map<String, dynamic>) {
+              return Map<String, dynamic>.from(decoded);
+            }
+          } catch (e) {
+            // Ignore malformed entries and fall back to an empty map.
+          }
+          return <String, dynamic>{};
+        })
+        .where((method) => method.isNotEmpty)
+        .toList();
   }
 
   // App Settings
