@@ -129,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                       label: 'Email Address',
                       hint: 'Enter your email',
                       keyboardType: TextInputType.emailAddress,
-                      prefixIcon: Icons.email_outlined,
+                      prefixIcon: const Icon(Icons.email_outlined),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return AppConstants.emailRequired;
@@ -151,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                       label: 'Password',
                       hint: 'Enter your password',
                       obscureText: _obscurePassword,
-                      prefixIcon: Icons.lock_outline,
+                      prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword ? Icons.visibility_off : Icons.visibility,

@@ -78,11 +78,6 @@ class AppConstants {
   static const String orderDelivered = 'delivered';
   static const String orderCancelled = 'cancelled';
   
-  // Payment Methods
-  static const String paymentCard = 'card';
-  static const String paymentCash = 'cash';
-  static const String paymentDigital = 'digital_wallet';
-  
   // Social Links
   static const String facebookUrl = 'https://facebook.com/foodrush';
   static const String twitterUrl = 'https://twitter.com/foodrush';

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+
 import '../constants/app_constants.dart';
-import '../providers/product_provider.dart';
-import '../providers/cart_provider.dart';
+import '../models/product.dart';
 import '../providers/auth_provider.dart';
+import '../providers/cart_provider.dart';
+import '../providers/product_provider.dart';
 import '../utils/routes.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -16,170 +17,163 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  final _searchController = TextEditingController();
-  late AnimationController _animationController;
-  late TabController _tabController;
+class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  int _selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-    _tabController = TabController(length: 4, vsync: this);
-    
-    // Load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductProvider>().refresh();
+      final productProvider = context.read<ProductProvider>();
+      productProvider.refresh();
     });
-    
-    _animationController.forward();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _animationController.dispose();
-    _tabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              // Custom App Bar
-              SliverAppBar(
-                expandedHeight: 120,
-                floating: false,
-                pinned: true,
-                backgroundColor: Theme.of(context).colorScheme.background,
-                elevation: 0,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                          Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-                        ],
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // User Greeting
-                          Consumer<AuthProvider>(
-                            builder: (context, authProvider, child) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Good ${_getTimeOfDay()},',
-                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
-                                    ),
-                                  ),
-                                  Text(
-                                    authProvider.userDisplayName,
-                                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                          
-                          const SizedBox(height: 16),
-                          
-                          // Search Bar
-                          SearchTextField(
-                            controller: _searchController,
-                            hint: 'Search for food, restaurants...',
-                            onChanged: (query) {
-                              context.read<ProductProvider>().searchProducts(query);
-                            },
-                            onClear: () {
-                              context.read<ProductProvider>().searchProducts('');
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                bottom: TabBar(
-                  controller: _tabController,
-                  labelColor: Theme.of(context).colorScheme.primary,
-                  unselectedLabelColor: Theme.of(context).colorScheme.onBackground.withOpacity(0.6),
-                  indicatorColor: Theme.of(context).colorScheme.primary,
-                  indicatorWeight: 3,
-                  tabs: const [
-                    Tab(text: 'Home'),
-                    Tab(text: 'Menu'),
-                    Tab(text: 'Orders'),
-                    Tab(text: 'Profile'),
-                  ],
-                ),
-              ),
-            ];
-          },
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildHomeTab(),
-              _buildMenuTab(),
-              _buildOrdersTab(),
-              _buildProfileTab(),
-            ],
-          ),
+      appBar: _buildAppBar(),
+      body: _buildBody(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu_outlined), label: 'Menu'),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Orders'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    final actions = <Widget>[
+      IconButton(
+        icon: const Icon(Icons.shopping_cart_outlined),
+        onPressed: () => NavigationHelper.navigateToCart(context),
+      ),
+    ];
+
+    switch (_selectedIndex) {
+      case 0:
+        return AppBar(
+          titleSpacing: 16,
+          title: _buildGreeting(),
+          actions: actions,
+          bottom: _buildSearchBar(),
+        );
+      case 1:
+        return AppBar(
+          title: const Text('Menu'),
+          actions: actions,
+          bottom: _buildSearchBar(),
+        );
+      case 2:
+        return AppBar(
+          title: const Text('Orders'),
+          actions: actions,
+        );
+      case 3:
+      default:
+        return AppBar(
+          title: const Text('Profile'),
+          actions: actions,
+        );
+    }
+  }
+
+  PreferredSizeWidget _buildSearchBar() {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(72),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: SearchTextField(
+          controller: _searchController,
+          hint: 'Search for dishes or restaurants',
+          onChanged: (query) => context.read<ProductProvider>().searchProducts(query),
+          onClear: () => context.read<ProductProvider>().searchProducts(''),
         ),
       ),
     );
   }
 
+  Widget _buildGreeting() {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Good ${_getTimeOfDay()}',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7)),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              authProvider.userDisplayName,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBody() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildHomeTab();
+      case 1:
+        return _buildMenuTab();
+      case 2:
+        return _buildOrdersTab();
+      case 3:
+      default:
+        return _buildProfileTab();
+    }
+  }
+
   Widget _buildHomeTab() {
     return Consumer<ProductProvider>(
-      builder: (context, productProvider, child) {
+      builder: (context, provider, child) {
         return RefreshIndicator(
-          onRefresh: () => productProvider.refresh(),
-          child: SingleChildScrollView(
+          onRefresh: () => provider.refresh(),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Special Offers Banner
-                _buildSpecialOffersBanner(),
-                
-                const SizedBox(height: 24),
-                
-                // Categories Section
-                _buildCategoriesSection(productProvider),
-                
-                const SizedBox(height: 24),
-                
-                // Featured Products Section
-                _buildFeaturedProductsSection(productProvider),
-                
-                const SizedBox(height: 24),
-                
-                // Popular Products Section
-                _buildPopularProductsSection(productProvider),
-                
-                const SizedBox(height: 100), // Bottom padding
-              ],
-            ),
+            children: [
+              _buildCategorySection(provider),
+              const SizedBox(height: 24),
+              Text(
+                'Recommended for you',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              if (provider.isLoadingProducts && provider.products.isEmpty)
+                const Center(child: CircularProgressIndicator()),
+              if (!provider.isLoadingProducts && provider.filteredProducts.isEmpty)
+                _buildEmptyProductsState(),
+              ...provider.filteredProducts.map((product) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildProductListCard(product),
+                );
+              }),
+            ],
           ),
         );
       },
@@ -188,307 +182,101 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildMenuTab() {
     return Consumer<ProductProvider>(
-      builder: (context, productProvider, child) {
-        return Column(
-          children: [
-            // Filter Chips
-            _buildFilterChips(productProvider),
-            
-            // Products Grid
-            Expanded(
-              child: productProvider.isLoadingProducts
-                  ? const Center(child: CircularProgressIndicator())
-                  : productProvider.filteredProducts.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.restaurant_menu,
-                                size: 64,
-                                color: Theme.of(context).colorScheme.onBackground.withOpacity(0.3),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No products found',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onBackground.withOpacity(0.5),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Try adjusting your filters or search terms',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onBackground.withOpacity(0.5),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : GridView.builder(
-                          padding: const EdgeInsets.all(AppConstants.defaultPadding),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.75,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                          ),
-                          itemCount: productProvider.filteredProducts.length,
-                          itemBuilder: (context, index) {
-                            final product = productProvider.filteredProducts[index];
-                            return _buildProductCard(product);
-                          },
-                        ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildOrdersTab() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.receipt_long,
-            size: 64,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'No orders yet',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Start ordering to see your order history',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileTab() {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(AppConstants.defaultPadding),
-          child: Column(
-            children: [
-              // Profile Header
-              _buildProfileHeader(authProvider),
-              
-              const SizedBox(height: 24),
-              
-              // Profile Options
-              _buildProfileOptions(),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSpecialOffersBanner() {
-    return Container(
-      height: 160,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.secondary,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Background Pattern
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.1),
-              ),
-            ),
-          ),
-          
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Special Offer!',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+      builder: (context, provider, child) {
+        final products = provider.filteredProducts;
+        return RefreshIndicator(
+          onRefresh: () => provider.refresh(),
+          child: products.isEmpty
+              ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                  children: [
+                    _buildCategorySection(provider),
+                    const SizedBox(height: 24),
+                    if (provider.isLoadingProducts)
+                      const Center(child: CircularProgressIndicator())
+                    else
+                      _buildEmptyProductsState(),
+                  ],
+                )
+              : GridView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.72,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Get 20% off on your first order',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                CustomButton(
-                  text: 'Order Now',
-                  onPressed: () {
-                    _tabController.animateTo(1); // Switch to menu tab
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    return _buildProductGridCard(products[index]);
                   },
-                  isOutlined: true,
-                  textColor: Colors.white,
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ).animate(controller: _animationController)
-      .fadeIn(duration: 600.ms)
-      .slideX(begin: 0.2, end: 0);
+        );
+      },
+    );
   }
 
-  Widget _buildCategoriesSection(ProductProvider productProvider) {
+  Widget _buildCategorySection(ProductProvider provider) {
+    if (provider.isLoadingCategories && provider.categories.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (provider.categories.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Categories',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No categories available yet.',
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6)),
+          ),
+        ],
+      );
+    }
+
+    final categories = provider.categories;
+    final selectedId = provider.selectedCategory?.id;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Categories',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ).animate(controller: _animationController)
-          .fadeIn(duration: 600.ms, delay: 200.ms),
-        
-        const SizedBox(height: 16),
-        
-        if (productProvider.isLoadingCategories)
-          const Center(child: CircularProgressIndicator())
-        else
-          SizedBox(
-            height: 100,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: productProvider.categories.length,
-              itemBuilder: (context, index) {
-                final category = productProvider.categories[index];
-                return _buildCategoryCard(category, index);
-              },
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildCategoryCard(category, int index) {
-    return GestureDetector(
-      onTap: () {
-        NavigationHelper.navigateToMenu(context, categoryId: category.id.toString());
-      },
-      child: Container(
-        width: 80,
-        margin: const EdgeInsets.only(right: 12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-          ),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.restaurant,
-                color: Theme.of(context).colorScheme.primary,
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              category.name,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ).animate(controller: _animationController)
-        .fadeIn(duration: 600.ms, delay: (200 + (index * 100)).ms)
-        .scale(duration: 400.ms, delay: (200 + (index * 100)).ms),
-    );
-  }
-
-  Widget _buildFeaturedProductsSection(ProductProvider productProvider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Featured',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                NavigationHelper.navigateToMenu(context);
-              },
-              child: const Text('See all'),
-            ),
-          ],
-        ).animate(controller: _animationController)
-          .fadeIn(duration: 600.ms, delay: 400.ms),
-        
-        const SizedBox(height: 16),
-        
+        const SizedBox(height: 12),
         SizedBox(
-          height: 200,
-          child: ListView.builder(
+          height: 40,
+          child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: productProvider.featuredProducts.length,
+            itemCount: categories.length + 1,
+            separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
-              final product = productProvider.featuredProducts[index];
-              return _buildFeaturedProductCard(product, index);
+              if (index == 0) {
+                final isSelected = selectedId == null;
+                return ChoiceChip(
+                  label: const Text('All'),
+                  selected: isSelected,
+                  onSelected: (_) => provider.filterByCategory(null),
+                );
+              }
+
+              final category = categories[index - 1];
+              final isSelected = selectedId == category.id;
+              return ChoiceChip(
+                label: Text(category.name),
+                selected: isSelected,
+                onSelected: (_) => provider.filterByCategory(category),
+              );
             },
           ),
         ),
@@ -496,429 +284,227 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildFeaturedProductCard(product, int index) {
-    return GestureDetector(
-      onTap: () {
-        NavigationHelper.navigateToProductDetail(context, product.id);
-      },
-      child: Container(
-        width: 160,
-        margin: const EdgeInsets.only(right: 12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product Image
-            Container(
-              height: 120,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              ),
-              child: Stack(
-                children: [
-                  Center(
-                    child: Icon(
-                      Icons.restaurant,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                    ),
-                  ),
-                  if (product.isPopular)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.orange,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          'Popular',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            
-            // Product Info
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    product.formattedPrice,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ).animate(controller: _animationController)
-        .fadeIn(duration: 600.ms, delay: (400 + (index * 100)).ms)
-        .scale(duration: 400.ms, delay: (400 + (index * 100)).ms),
-    );
-  }
-
-  Widget _buildPopularProductsSection(ProductProvider productProvider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Popular Near You',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                NavigationHelper.navigateToMenu(context);
-              },
-              child: const Text('See all'),
-            ),
-          ],
-        ).animate(controller: _animationController)
-          .fadeIn(duration: 600.ms, delay: 600.ms),
-        
-        const SizedBox(height: 16),
-        
-        if (productProvider.popularProducts.isEmpty)
-          Container(
-            height: 120,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-              ),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.local_fire_department,
-                    size: 32,
-                    color: Theme.of(context).colorScheme.onBackground.withOpacity(0.3),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'No popular items yet',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onBackground.withOpacity(0.5),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-        else
-          Column(
-            children: productProvider.popularProducts.take(3).map((product) {
-              return _buildPopularProductItem(product);
-            }).toList(),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildPopularProductItem(product) {
-    return GestureDetector(
-      onTap: () {
-        NavigationHelper.navigateToProductDetail(context, product.id);
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-          ),
-        ),
-        child: Row(
-          children: [
-            // Product Image
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              ),
-              child: Icon(
-                Icons.restaurant,
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-              ),
-            ),
-            
-            const SizedBox(width: 12),
-            
-            // Product Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    product.description,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6),
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.star,
-                        size: 16,
-                        color: Colors.orange,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        product.rating.toStringAsFixed(1),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        product.formattedPrice,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterChips(ProductProvider productProvider) {
+  Widget _buildEmptyProductsState() {
     return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.2)),
+      ),
+      child: Column(
         children: [
-          // Vegetarian Filter
-          FilterChip(
-            label: const Text('Vegetarian'),
-            selected: productProvider.isVegetarianFilter,
-            onSelected: (_) => productProvider.toggleVegetarianFilter(),
+          Icon(
+            Icons.restaurant_menu,
+            size: 48,
+            color: Theme.of(context).colorScheme.onBackground.withOpacity(0.3),
           ),
-          const SizedBox(width: 8),
-          
-          // Vegan Filter
-          FilterChip(
-            label: const Text('Vegan'),
-            selected: productProvider.isVeganFilter,
-            onSelected: (_) => productProvider.toggleVeganFilter(),
+          const SizedBox(height: 12),
+          Text(
+            'No menu items found',
+            style: Theme.of(context).textTheme.titleMedium,
           ),
-          const SizedBox(width: 8),
-          
-          // Gluten-Free Filter
-          FilterChip(
-            label: const Text('Gluten-Free'),
-            selected: productProvider.isGlutenFreeFilter,
-            onSelected: (_) => productProvider.toggleGlutenFreeFilter(),
-          ),
-          const SizedBox(width: 8),
-          
-          // Popular Filter
-          FilterChip(
-            label: const Text('Popular'),
-            selected: productProvider.isPopularFilter,
-            onSelected: (_) => productProvider.togglePopularFilter(),
+          const SizedBox(height: 4),
+          Text(
+            'Try a different search or category.',
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProductCard(product) {
-    return GestureDetector(
-      onTap: () {
-        NavigationHelper.navigateToProductDetail(context, product.id);
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product Image
-            Expanded(
-              flex: 3,
-              child: Container(
-                width: double.infinity,
+  Widget _buildProductListCard(Product product) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => NavigationHelper.navigateToProductDetail(context, product.id),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                height: 80,
+                width: 80,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
                 ),
-                child: Stack(
-                  children: [
-                    Center(
-                      child: Icon(
-                        Icons.restaurant,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                      ),
-                    ),
-                    if (product.isPopular)
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.orange,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'Popular',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 8,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    // Favorite Button
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Consumer<ProductProvider>(
-                        builder: (context, provider, child) {
-                          return IconButton(
-                            icon: Icon(
-                              provider.isFavorite(product.id)
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: provider.isFavorite(product.id)
-                                  ? Colors.red
-                                  : Colors.white,
-                            ),
-                            onPressed: () => provider.toggleFavorite(product.id),
-                          ),
-                        },
-                      ),
-                    ),
-                  ],
+                child: Icon(
+                  Icons.fastfood,
+                  size: 36,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
-            ),
-            
-            // Product Info
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
+              const SizedBox(width: 16),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       product.name,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      product.description,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6),
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      product.category.name,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6)),
                     ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.star,
-                          size: 14,
-                          color: Colors.orange,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          product.rating.toStringAsFixed(1),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          product.formattedPrice,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 8),
+                    Text(
+                      product.formattedPrice,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              IconButton(
+                icon: const Icon(Icons.add_shopping_cart),
+                onPressed: () => _handleAddToCart(product),
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildProductGridCard(Product product) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => NavigationHelper.navigateToProductDetail(context, product.id),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 100,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                ),
+                child: Icon(
+                  Icons.fastfood,
+                  size: 40,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                product.name,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                product.category.name,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6)),
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  Text(
+                    product.formattedPrice,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.add_shopping_cart),
+                    onPressed: () => _handleAddToCart(product),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrdersTab() {
+    return ListView(
+      padding: const EdgeInsets.all(AppConstants.defaultPadding),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.2)),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.receipt_long,
+                size: 64,
+                color: Theme.of(context).colorScheme.onBackground.withOpacity(0.3),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No orders yet',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Browse the menu and place your first order.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6)),
+              ),
+              const SizedBox(height: 24),
+              CustomButton(
+                text: 'Explore Menu',
+                icon: const Icon(Icons.restaurant_menu_outlined),
+                onPressed: () {
+                  setState(() {
+                    _selectedIndex = 1;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileTab() {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        return ListView(
+          padding: const EdgeInsets.all(AppConstants.defaultPadding),
+          children: [
+            _buildProfileHeader(authProvider),
+            const SizedBox(height: 24),
+            _buildProfileOptions(),
+          ],
+        );
+      },
     );
   }
 
@@ -938,63 +524,47 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
       child: Row(
         children: [
-          // User Avatar
           Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.white,
+            width: 72,
+            height: 72,
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: Colors.white,
             ),
-            child: Center(
-              child: Text(
-                authProvider.userInitials,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            alignment: Alignment.center,
+            child: Text(
+              authProvider.userInitials,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
             ),
           ),
-          
           const SizedBox(width: 16),
-          
-          // User Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   authProvider.userDisplayName,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   authProvider.user?.email ?? '',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
-                  ),
+                  style:
+                      Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withOpacity(0.9)),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 CustomButton(
                   text: 'Edit Profile',
-                  onPressed: () {
-                    // TODO: Navigate to edit profile
-                  },
+                  onPressed: () => _showNotImplementedDialog('Edit Profile'),
                   isOutlined: true,
                   textColor: Colors.white,
-                  height: 32,
-                  fontSize: 12,
+                  height: 36,
                 ),
               ],
             ),
@@ -1006,42 +576,66 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildProfileOptions() {
     final options = [
-      {'icon': Icons.location_on_outlined, 'title': 'Delivery Address', 'subtitle': 'Manage your addresses'},
-      {'icon': Icons.payment_outlined, 'title': 'Payment Methods', 'subtitle': 'Add or remove payment methods'},
-      {'icon': Icons.receipt_long_outlined, 'title': 'Order History', 'subtitle': 'View your past orders'},
-      {'icon': Icons.favorite_outline, 'title': 'Favorites', 'subtitle': 'Your favorite items'},
-      {'icon': Icons.notifications_outlined, 'title': 'Notifications', 'subtitle': 'Manage notifications'},
-      {'icon': Icons.help_outline, 'title': 'Help & Support', 'subtitle': 'Get help and support'},
-      {'icon': Icons.settings_outlined, 'title': 'Settings', 'subtitle': 'App settings and preferences'},
-      {'icon': Icons.logout_outlined, 'title': 'Logout', 'subtitle': 'Sign out of your account'},
+      {
+        'icon': Icons.receipt_long_outlined,
+        'title': 'Order History',
+        'subtitle': 'View your previous purchases',
+        'action': () => NavigationHelper.navigateToOrderHistory(context),
+      },
+      {
+        'icon': Icons.support_agent_outlined,
+        'title': 'Support',
+        'subtitle': 'Need help with an order?',
+        'action': () => _showNotImplementedDialog('Support'),
+      },
+      {
+        'icon': Icons.settings_outlined,
+        'title': 'Settings',
+        'subtitle': 'App preferences',
+        'action': () => _showNotImplementedDialog('Settings'),
+      },
+      {
+        'icon': Icons.logout_outlined,
+        'title': 'Logout',
+        'subtitle': 'Sign out of your account',
+        'action': _handleLogout,
+      },
     ];
 
     return Column(
       children: options.map((option) {
         return ListTile(
-          leading: Icon(
-            option['icon'] as IconData,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          leading: Icon(option['icon'] as IconData, color: Theme.of(context).colorScheme.primary),
           title: Text(option['title'] as String),
           subtitle: Text(option['subtitle'] as String),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () {
-            if (option['title'] == 'Logout') {
-              _handleLogout();
-            } else if (option['title'] == 'Order History') {
-              NavigationHelper.navigateToOrderHistory(context);
-            } else {
-              _showNotImplementedDialog(option['title'] as String);
-            }
-          },
+          onTap: () => (option['action'] as VoidCallback)(),
         );
       }).toList(),
     );
   }
 
+  Future<void> _handleAddToCart(Product product) async {
+    final cartProvider = context.read<CartProvider>();
+    final success = await cartProvider.addToCart(product);
+    if (!mounted) return;
+
+    final message = success
+        ? '${product.name} added to cart'
+        : cartProvider.errorMessage ?? 'Unable to add item to cart';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: success
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.error,
+      ),
+    );
+  }
+
   void _handleLogout() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Logout'),
@@ -1064,11 +658,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _showNotImplementedDialog(String feature) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(feature),
-        content: Text('$feature will be available soon!'),
+        content: const Text('This feature will be available soon!'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

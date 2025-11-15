@@ -1,170 +1,80 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
+
 import '../models/product.dart';
-import '../models/category.dart';
 import '../services/api_service.dart';
-import '../services/storage_service.dart';
-import '../constants/app_constants.dart';
 
 class ProductProvider extends ChangeNotifier {
   List<Category> _categories = [];
   List<Product> _products = [];
-  List<Product> _featuredProducts = [];
-  List<Product> _popularProducts = [];
   Product? _selectedProduct;
-  List<ProductReview> _productReviews = [];
-  List<int> _favorites = [];
-  
+
   bool _isLoading = false;
   bool _isLoadingProducts = false;
   bool _isLoadingCategories = false;
-  bool _isLoadingReviews = false;
   String? _errorMessage;
-  
-  // Search and filter state
+
   String _searchQuery = '';
   Category? _selectedCategory;
-  List<String> _selectedTags = [];
-  bool _isVegetarianFilter = false;
-  bool _isVeganFilter = false;
-  bool _isGlutenFreeFilter = false;
-  bool _isPopularFilter = false;
-  String _sortBy = 'name'; // name, price, rating, preparationTime
-  String _sortOrder = 'asc'; // asc, desc
-  int _currentPage = 1;
-  int _totalPages = 1;
-  bool _hasMoreProducts = true;
 
-  // Getters
   List<Category> get categories => _categories;
   List<Product> get products => _products;
-  List<Product> get featuredProducts => _featuredProducts;
-  List<Product> get popularProducts => _popularProducts;
   Product? get selectedProduct => _selectedProduct;
-  List<ProductReview> get productReviews => _productReviews;
-  List<int> get favorites => _favorites;
-  
+
   bool get isLoading => _isLoading;
   bool get isLoadingProducts => _isLoadingProducts;
   bool get isLoadingCategories => _isLoadingCategories;
-  bool get isLoadingReviews => _isLoadingReviews;
   String? get errorMessage => _errorMessage;
-  
-  // Filter getters
+
   String get searchQuery => _searchQuery;
   Category? get selectedCategory => _selectedCategory;
-  List<String> get selectedTags => _selectedTags;
-  bool get isVegetarianFilter => _isVegetarianFilter;
-  bool get isVeganFilter => _isVeganFilter;
-  bool get isGlutenFreeFilter => _isGlutenFreeFilter;
-  bool get isPopularFilter => _isPopularFilter;
-  String get sortBy => _sortBy;
-  String get sortOrder => _sortOrder;
-  int get currentPage => _currentPage;
-  int get totalPages => _totalPages;
-  bool get hasMoreProducts => _hasMoreProducts;
 
-  // Computed getters
   List<Product> get filteredProducts {
-    var filtered = List<Product>.from(_products);
-    
-    // Apply category filter
-    if (_selectedCategory != null) {
-      filtered = filtered.where((p) => p.category.id == _selectedCategory!.id).toList();
-    }
-    
-    // Apply search filter
-    if (_searchQuery.isNotEmpty) {
-      filtered = filtered.where((p) => 
-        p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().contains(_searchQuery.toLowerCase())
-      ).toList();
-    }
-    
-    // Apply dietary filters
-    if (_isVegetarianFilter) {
-      filtered = filtered.where((p) => p.isVegetarian).toList();
-    }
-    if (_isVeganFilter) {
-      filtered = filtered.where((p) => p.isVegan).toList();
-    }
-    if (_isGlutenFreeFilter) {
-      filtered = filtered.where((p) => p.isGlutenFree).toList();
-    }
-    if (_isPopularFilter) {
-      filtered = filtered.where((p) => p.isPopular).toList();
-    }
-    
-    // Apply tag filter
-    if (_selectedTags.isNotEmpty) {
-      filtered = filtered.where((p) => 
-        _selectedTags.any((tag) => p.tags.contains(tag))
-      ).toList();
-    }
-    
-    // Apply sorting
-    filtered.sort((a, b) {
-      int comparison = 0;
-      switch (_sortBy) {
-        case 'name':
-          comparison = a.name.compareTo(b.name);
-          break;
-        case 'price':
-          comparison = a.price.compareTo(b.price);
-          break;
-        case 'rating':
-          comparison = a.rating.compareTo(b.rating);
-          break;
-        case 'preparationTime':
-          comparison = a.preparationTime.compareTo(b.preparationTime);
-          break;
-      }
-      return _sortOrder == 'desc' ? -comparison : comparison;
-    });
-    
-    return filtered;
-  }
+    final query = _searchQuery.trim().toLowerCase();
 
-  bool isFavorite(int productId) {
-    return _favorites.contains(productId);
+    return _products.where((product) {
+      final matchesCategory =
+          _selectedCategory == null || product.category.id == _selectedCategory!.id;
+      final matchesQuery = query.isEmpty ||
+          product.name.toLowerCase().contains(query) ||
+          product.description.toLowerCase().contains(query);
+      return matchesCategory && matchesQuery;
+    }).toList();
   }
 
   ProductProvider() {
-    _initializeData();
+    _initialize();
   }
 
-  // Initialize data
-  Future<void> _initializeData() async {
-    await loadFavorites();
-    await loadCategories();
-    await loadFeaturedProducts();
-    await loadPopularProducts();
+  Future<void> _initialize() async {
+    await Future.wait([
+      loadCategories(),
+      loadProducts(reset: true),
+    ]);
   }
 
-  // Load categories
   Future<void> loadCategories() async {
     _isLoadingCategories = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _categories = await ApiService.getCategories();
-      _isLoadingCategories = false;
-      notifyListeners();
+      final categories = await ApiService.getCategories();
+      _categories = categories;
     } catch (e) {
       _errorMessage = e.toString();
+    } finally {
       _isLoadingCategories = false;
       notifyListeners();
     }
   }
 
-  // Load products with filters
-  Future<void> loadProducts({bool resetPage = false}) async {
-    if (resetPage) {
-      _currentPage = 1;
-      _hasMoreProducts = true;
-    }
+  Future<void> loadProducts({bool reset = false}) async {
+    if (_isLoadingProducts) return;
 
-    if (!_hasMoreProducts) return;
+    if (reset) {
+      _products = [];
+      notifyListeners();
+    }
 
     _isLoadingProducts = true;
     _errorMessage = null;
@@ -173,319 +83,63 @@ class ProductProvider extends ChangeNotifier {
     try {
       final products = await ApiService.getProducts(
         categoryId: _selectedCategory?.id,
-        search: _searchQuery.isNotEmpty ? _searchQuery : null,
-        isVegetarian: _isVegetarianFilter,
-        isVegan: _isVeganFilter,
-        isGlutenFree: _isGlutenFreeFilter,
-        isPopular: _isPopularFilter,
-        sortBy: _sortBy,
-        sortOrder: _sortOrder,
-        page: _currentPage,
-        limit: 20,
+        availableOnly: true,
       );
-
-      if (resetPage) {
-        _products = products;
-      } else {
-        _products.addAll(products);
-      }
-
-      // Check if there are more products
-      _hasMoreProducts = products.length == 20;
-      _currentPage++;
-
-      _isLoadingProducts = false;
-      notifyListeners();
+      _products = products;
     } catch (e) {
       _errorMessage = e.toString();
+    } finally {
       _isLoadingProducts = false;
       notifyListeners();
     }
   }
 
-  // Load featured products
-  Future<void> loadFeaturedProducts() async {
-    try {
-      _featuredProducts = await ApiService.getProducts(
-        isPopular: true,
-        limit: 10,
-      );
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Failed to load featured products: $e');
-    }
-  }
-
-  // Load popular products
-  Future<void> loadPopularProducts() async {
-    try {
-      _popularProducts = await ApiService.getProducts(
-        isPopular: true,
-        sortBy: 'rating',
-        sortOrder: 'desc',
-        limit: 10,
-      );
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Failed to load popular products: $e');
-    }
-  }
-
-  // Load product details
   Future<void> loadProductDetails(int productId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _selectedProduct = await ApiService.getProductDetails(productId);
-      
-      // Add to recently viewed
-      await StorageService.addToRecentlyViewed(productId);
-      
-      _isLoading = false;
-      notifyListeners();
+      final product = await ApiService.getProductDetails(productId);
+      _selectedProduct = product;
     } catch (e) {
       _errorMessage = e.toString();
+    } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Load product reviews
-  Future<void> loadProductReviews(int productId, {int page = 1}) async {
-    _isLoadingReviews = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final reviews = await ApiService.getProductReviews(productId, page: page);
-      
-      if (page == 1) {
-        _productReviews = reviews;
-      } else {
-        _productReviews.addAll(reviews);
-      }
-      
-      _isLoadingReviews = false;
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      _isLoadingReviews = false;
-      notifyListeners();
-    }
-  }
-
-  // Search products
-  Future<void> searchProducts(String query) async {
+  void searchProducts(String query) {
     _searchQuery = query;
-    await loadProducts(resetPage: true);
+    notifyListeners();
   }
 
-  // Filter by category
   Future<void> filterByCategory(Category? category) async {
+    if (_selectedCategory?.id == category?.id) {
+      _selectedCategory = category;
+      notifyListeners();
+      return;
+    }
+
     _selectedCategory = category;
-    await loadProducts(resetPage: true);
+    await loadProducts(reset: true);
   }
 
-  // Toggle dietary filters
-  Future<void> toggleVegetarianFilter() async {
-    _isVegetarianFilter = !_isVegetarianFilter;
-    await loadProducts(resetPage: true);
-  }
-
-  Future<void> toggleVeganFilter() async {
-    _isVeganFilter = !_isVeganFilter;
-    await loadProducts(resetPage: true);
-  }
-
-  Future<void> toggleGlutenFreeFilter() async {
-    _isGlutenFreeFilter = !_isGlutenFreeFilter;
-    await loadProducts(resetPage: true);
-  }
-
-  Future<void> togglePopularFilter() async {
-    _isPopularFilter = !_isPopularFilter;
-    await loadProducts(resetPage: true);
-  }
-
-  // Toggle tags
-  Future<void> toggleTag(String tag) async {
-    if (_selectedTags.contains(tag)) {
-      _selectedTags.remove(tag);
-    } else {
-      _selectedTags.add(tag);
-    }
-    await loadProducts(resetPage: true);
-  }
-
-  // Clear all filters
-  Future<void> clearFilters() async {
-    _selectedCategory = null;
-    _searchQuery = '';
-    _selectedTags = [];
-    _isVegetarianFilter = false;
-    _isVeganFilter = false;
-    _isGlutenFreeFilter = false;
-    _isPopularFilter = false;
-    _sortBy = 'name';
-    _sortOrder = 'asc';
-    await loadProducts(resetPage: true);
-  }
-
-  // Sort products
-  Future<void> sortProducts(String sortBy, {String sortOrder = 'asc'}) async {
-    _sortBy = sortBy;
-    _sortOrder = sortOrder;
-    await loadProducts(resetPage: true);
-  }
-
-  // Load more products (pagination)
-  Future<void> loadMoreProducts() async {
-    if (!_isLoadingProducts && _hasMoreProducts) {
-      await loadProducts();
-    }
-  }
-
-  // Refresh data
   Future<void> refresh() async {
     await Future.wait([
       loadCategories(),
-      loadProducts(resetPage: true),
-      loadFeaturedProducts(),
-      loadPopularProducts(),
+      loadProducts(reset: true),
     ]);
   }
 
-  // Favorites management
-  Future<void> loadFavorites() async {
-    _favorites = StorageService.getFavorites();
+  void clearSelection() {
+    _selectedProduct = null;
     notifyListeners();
   }
 
-  Future<void> toggleFavorite(int productId) async {
-    if (_favorites.contains(productId)) {
-      _favorites.remove(productId);
-      await StorageService.removeFromFavorites(productId);
-    } else {
-      _favorites.add(productId);
-      await StorageService.addToFavorites(productId);
-    }
-    notifyListeners();
-  }
-
-  Future<void> clearFavorites() async {
-    _favorites.clear();
-    await StorageService.clearFavorites();
-    notifyListeners();
-  }
-
-  // Get recently viewed products
-  Future<List<Product>> getRecentlyViewed() async {
-    final recentlyViewedIds = StorageService.getRecentlyViewed();
-    final products = <Product>[];
-    
-    for (final id in recentlyViewedIds) {
-      try {
-        final product = await ApiService.getProductDetails(id);
-        products.add(product);
-      } catch (e) {
-        // Skip products that can't be loaded
-        continue;
-      }
-    }
-    
-    return products;
-  }
-
-  // Get products by IDs
-  Future<List<Product>> getProductsByIds(List<int> productIds) async {
-    final products = <Product>[];
-    
-    for (final id in productIds) {
-      try {
-        final product = await ApiService.getProductDetails(id);
-        products.add(product);
-      } catch (e) {
-        // Skip products that can't be loaded
-        continue;
-      }
-    }
-    
-    return products;
-  }
-
-  // Get search suggestions
-  List<String> getSearchSuggestions() {
-    final suggestions = <String>[];
-    final searchHistory = StorageService.getSearchHistory();
-    
-    // Add search history
-    suggestions.addAll(searchHistory.where((s) => 
-      s.toLowerCase().contains(_searchQuery.toLowerCase())
-    ));
-    
-    // Add product names that match
-    for (final product in _products) {
-      if (product.name.toLowerCase().contains(_searchQuery.toLowerCase())) {
-        suggestions.add(product.name);
-      }
-    }
-    
-    // Add category names that match
-    for (final category in _categories) {
-      if (category.name.toLowerCase().contains(_searchQuery.toLowerCase())) {
-        suggestions.add(category.name);
-      }
-    }
-    
-    // Remove duplicates and limit to 10 suggestions
-    return suggestions.toSet().take(10).toList();
-  }
-
-  // Add search term to history
-  Future<void> addToSearchHistory(String term) async {
-    if (term.isNotEmpty) {
-      await StorageService.addToSearchHistory(term);
-    }
-  }
-
-  // Clear search history
-  Future<void> clearSearchHistory() async {
-    await StorageService.clearSearchHistory();
-  }
-
-  // Get available tags from products
-  List<String> getAvailableTags() {
-    final tags = <String>{};
-    for (final product in _products) {
-      tags.addAll(product.tags);
-    }
-    return tags.toList()..sort();
-  }
-
-  // Clear error message
   void clearError() {
     _errorMessage = null;
-    notifyListeners();
-  }
-
-  // Reset state
-  void resetState() {
-    _selectedProduct = null;
-    _productReviews = [];
-    _searchQuery = '';
-    _selectedCategory = null;
-    _selectedTags = [];
-    _isVegetarianFilter = false;
-    _isVeganFilter = false;
-    _isGlutenFreeFilter = false;
-    _isPopularFilter = false;
-    _sortBy = 'name';
-    _sortOrder = 'asc';
-    _currentPage = 1;
-    _totalPages = 1;
-    _hasMoreProducts = true;
     notifyListeners();
   }
 }

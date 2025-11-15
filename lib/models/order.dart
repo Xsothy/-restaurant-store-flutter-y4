@@ -1,114 +1,197 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'user.dart';
-import 'cart.dart';
+import 'package:intl/intl.dart';
 
-part 'order.g.dart';
+String _formatOrderCurrency(num value) {
+  final formatter = NumberFormat('#,###', 'en_US');
+  final rounded = value is int ? value : value.round();
+  return '${formatter.format(rounded)} KHR';
+}
 
-@JsonSerializable()
 class Order {
-  final String id;
-  final User user;
-  final List<OrderItem> items;
+  final int id;
+  final int customerId;
+  final String customerName;
   final OrderStatus status;
-  final DeliveryInfo deliveryInfo;
-  final PaymentInfo paymentInfo;
-  final double subtotal;
-  final double tax;
-  final double deliveryFee;
-  final double total;
+  final double totalPrice;
+  final String orderType;
+  final String? deliveryAddress;
+  final String? phoneNumber;
   final String? specialInstructions;
   final DateTime createdAt;
+  final DateTime? updatedAt;
   final DateTime? estimatedDeliveryTime;
-  final DateTime? deliveredAt;
-  final DateTime? cancelledAt;
-  final String? cancellationReason;
-  final List<OrderStatusUpdate> statusHistory;
+  final List<OrderItem> items;
+  final PaymentStatus paymentStatus;
+  final PaymentMethod paymentMethod;
+  final DateTime? paymentPaidAt;
+  final String? paymentTransactionId;
+  final String? deliveryStatus;
+  final String? deliveryDriverName;
+  final String? deliveryDriverPhone;
+  final DateTime? deliveryEstimatedArrivalTime;
+  final DateTime? deliveryActualDeliveryTime;
 
   Order({
     required this.id,
-    required this.user,
-    required this.items,
+    required this.customerId,
+    required this.customerName,
     required this.status,
-    required this.deliveryInfo,
-    required this.paymentInfo,
-    required this.subtotal,
-    required this.tax,
-    required this.deliveryFee,
-    required this.total,
-    this.specialInstructions,
+    required this.totalPrice,
+    required this.orderType,
+    required this.items,
+    required this.paymentStatus,
+    required this.paymentMethod,
     required this.createdAt,
+    this.deliveryAddress,
+    this.phoneNumber,
+    this.specialInstructions,
+    this.updatedAt,
     this.estimatedDeliveryTime,
-    this.deliveredAt,
-    this.cancelledAt,
-    this.cancellationReason,
-    required this.statusHistory,
+    this.paymentPaidAt,
+    this.paymentTransactionId,
+    this.deliveryStatus,
+    this.deliveryDriverName,
+    this.deliveryDriverPhone,
+    this.deliveryEstimatedArrivalTime,
+    this.deliveryActualDeliveryTime,
   });
 
-  factory Order.fromJson(Map<String, dynamic> json) => _$OrderFromJson(json);
-  Map<String, dynamic> toJson() => _$OrderToJson(this);
+  factory Order.fromJson(Map<String, dynamic> json) {
+    return Order(
+      id: json['id'] is int ? json['id'] as int : int.tryParse('${json['id']}') ?? 0,
+      customerId: json['customerId'] is int
+          ? json['customerId'] as int
+          : int.tryParse('${json['customerId']}') ?? 0,
+      customerName: json['customerName']?.toString() ?? 'Customer',
+      status: _parseOrderStatus(json['status']),
+      totalPrice: json['totalPrice'] is num
+          ? (json['totalPrice'] as num).toDouble()
+          : double.tryParse('${json['totalPrice']}') ?? 0,
+      orderType: json['orderType']?.toString() ?? 'DELIVERY',
+      deliveryAddress: json['deliveryAddress']?.toString(),
+      phoneNumber: json['phoneNumber']?.toString(),
+      specialInstructions: json['specialInstructions']?.toString(),
+      createdAt: _parseDate(json['createdAt']) ?? DateTime.now(),
+      updatedAt: _parseDate(json['updatedAt']),
+      estimatedDeliveryTime: _parseDate(json['estimatedDeliveryTime']),
+      items: (json['orderItems'] as List?)
+              ?.map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      paymentStatus: _parsePaymentStatus(json['paymentStatus']),
+      paymentMethod: _parsePaymentMethod(json['paymentMethod']),
+      paymentPaidAt: _parseDate(json['paymentPaidAt']),
+      paymentTransactionId: json['paymentTransactionId']?.toString(),
+      deliveryStatus: json['deliveryStatus']?.toString(),
+      deliveryDriverName: json['deliveryDriverName']?.toString(),
+      deliveryDriverPhone: json['deliveryDriverPhone']?.toString(),
+      deliveryEstimatedArrivalTime: _parseDate(json['deliveryEstimatedArrivalTime']),
+      deliveryActualDeliveryTime: _parseDate(json['deliveryActualDeliveryTime']),
+    );
+  }
 
-  String get formattedTotal => '\$${total.toStringAsFixed(2)}';
-  String get formattedSubtotal => '\$${subtotal.toStringAsFixed(2)}';
-  String get formattedTax => '\$${tax.toStringAsFixed(2)}';
-  String get formattedDeliveryFee => deliveryFee == 0.0 ? 'FREE' : '\$${deliveryFee.toStringAsFixed(2)}';
-  
-  String get statusDisplay {
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'customerId': customerId,
+      'customerName': customerName,
+      'status': status.name.toUpperCase(),
+      'totalPrice': totalPrice,
+      'orderType': orderType,
+      'deliveryAddress': deliveryAddress,
+      'phoneNumber': phoneNumber,
+      'specialInstructions': specialInstructions,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'estimatedDeliveryTime': estimatedDeliveryTime?.toIso8601String(),
+      'orderItems': items.map((item) => item.toJson()).toList(),
+      'paymentStatus': paymentStatus.name.toUpperCase(),
+      'paymentMethod': paymentMethod.name.toUpperCase(),
+      'paymentPaidAt': paymentPaidAt?.toIso8601String(),
+      'paymentTransactionId': paymentTransactionId,
+      'deliveryStatus': deliveryStatus,
+      'deliveryDriverName': deliveryDriverName,
+      'deliveryDriverPhone': deliveryDriverPhone,
+      'deliveryEstimatedArrivalTime': deliveryEstimatedArrivalTime?.toIso8601String(),
+      'deliveryActualDeliveryTime': deliveryActualDeliveryTime?.toIso8601String(),
+    }..removeWhere((key, value) => value == null);
+  }
+
+  String get formattedTotal => _formatOrderCurrency(totalPrice);
+
+  bool get isActive {
     switch (status) {
-      case OrderStatus.pending:
-        return 'Pending';
-      case OrderStatus.confirmed:
-        return 'Confirmed';
-      case OrderStatus.preparing:
-        return 'Preparing';
-      case OrderStatus.ready:
-        return 'Ready for Pickup';
-      case OrderStatus.outForDelivery:
-        return 'Out for Delivery';
       case OrderStatus.delivered:
-        return 'Delivered';
       case OrderStatus.cancelled:
-        return 'Cancelled';
+        return false;
+      default:
+        return true;
     }
   }
-  
-  bool get isActive => ![
-    OrderStatus.delivered,
-    OrderStatus.cancelled,
-  ].contains(status);
-  
-  Duration? get estimatedPreparationTime {
-    if (estimatedDeliveryTime == null) return null;
-    return estimatedDeliveryTime!.difference(DateTime.now());
+
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    return DateTime.tryParse(value.toString());
   }
 }
 
-@JsonSerializable()
 class OrderItem {
-  final String id;
-  final String productId;
+  final int id;
+  final int productId;
   final String productName;
-  final String productImage;
-  final double price;
+  final String? productImageUrl;
   final int quantity;
-  final List<String> customizations;
+  final double unitPrice;
+  final double totalPrice;
   final String? specialInstructions;
 
   OrderItem({
     required this.id,
     required this.productId,
     required this.productName,
-    required this.productImage,
-    required this.price,
     required this.quantity,
-    required this.customizations,
+    required this.unitPrice,
+    required this.totalPrice,
+    this.productImageUrl,
     this.specialInstructions,
   });
 
-  factory OrderItem.fromJson(Map<String, dynamic> json) => _$OrderItemFromJson(json);
-  Map<String, dynamic> toJson() => _$OrderItemToJson(this);
+  factory OrderItem.fromJson(Map<String, dynamic> json) {
+    return OrderItem(
+      id: json['id'] is int ? json['id'] as int : int.tryParse('${json['id']}') ?? 0,
+      productId: json['productId'] is int
+          ? json['productId'] as int
+          : int.tryParse('${json['productId']}') ?? 0,
+      productName: json['productName']?.toString() ?? 'Menu Item',
+      productImageUrl: json['productImageUrl']?.toString(),
+      quantity: json['quantity'] is int
+          ? json['quantity'] as int
+          : int.tryParse('${json['quantity']}') ?? 0,
+      unitPrice: json['unitPrice'] is num
+          ? (json['unitPrice'] as num).toDouble()
+          : double.tryParse('${json['unitPrice']}') ?? 0,
+      totalPrice: json['totalPrice'] is num
+          ? (json['totalPrice'] as num).toDouble()
+          : double.tryParse('${json['totalPrice']}') ?? 0,
+      specialInstructions: json['specialInstructions']?.toString(),
+    );
+  }
 
-  double get subtotal => price * quantity;
-  String get formattedSubtotal => '\$${subtotal.toStringAsFixed(2)}';
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'productId': productId,
+      'productName': productName,
+      'productImageUrl': productImageUrl,
+      'quantity': quantity,
+      'unitPrice': unitPrice,
+      'totalPrice': totalPrice,
+      'specialInstructions': specialInstructions,
+    }..removeWhere((key, value) => value == null);
+  }
+
+  double get subtotal => totalPrice;
+  String get formattedSubtotal => _formatOrderCurrency(totalPrice);
 }
 
 enum OrderStatus {
@@ -121,144 +204,168 @@ enum OrderStatus {
   cancelled,
 }
 
-@JsonSerializable()
-class DeliveryInfo {
-  final Address address;
-  final String? driverName;
-  final String? driverPhone;
-  final String? driverPhoto;
-  final String? vehicleInfo;
-  final double? driverLatitude;
-  final double? driverLongitude;
-  final DateTime? estimatedDeliveryTime;
-  final String? trackingUrl;
-
-  DeliveryInfo({
-    required this.address,
-    this.driverName,
-    this.driverPhone,
-    this.driverPhoto,
-    this.vehicleInfo,
-    this.driverLatitude,
-    this.driverLongitude,
-    this.estimatedDeliveryTime,
-    this.trackingUrl,
-  });
-
-  factory DeliveryInfo.fromJson(Map<String, dynamic> json) => _$DeliveryInfoFromJson(json);
-  Map<String, dynamic> toJson() => _$DeliveryInfoToJson(this);
-}
-
-@JsonSerializable()
-class PaymentInfo {
-  final PaymentMethod method;
-  final String? lastFourDigits;
-  final String? transactionId;
-  final DateTime? paidAt;
-  final PaymentStatus status;
-
-  PaymentInfo({
-    required this.method,
-    this.lastFourDigits,
-    this.transactionId,
-    this.paidAt,
-    required this.status,
-  });
-
-  factory PaymentInfo.fromJson(Map<String, dynamic> json) => _$PaymentInfoFromJson(json);
-  Map<String, dynamic> toJson() => _$PaymentInfoToJson(this);
-
-  String get methodDisplay {
-    switch (method) {
-      case PaymentMethod.card:
-        return 'Credit Card';
-      case PaymentMethod.cash:
-        return 'Cash on Delivery';
-      case PaymentMethod.digitalWallet:
-        return 'Digital Wallet';
-    }
-  }
-}
-
 enum PaymentMethod {
-  card,
-  cash,
-  digitalWallet,
+  creditCard,
+  debitCard,
+  paypal,
+  stripe,
+  abaPayway,
+  cashOnDelivery,
+  bankTransfer,
 }
 
 enum PaymentStatus {
   pending,
-  paid,
+  awaitingSession,
+  awaitingWebhook,
+  cashPending,
+  processing,
+  completed,
   failed,
+  cancelled,
   refunded,
 }
 
-@JsonSerializable()
-class OrderStatusUpdate {
-  final OrderStatus status;
-  final DateTime timestamp;
-  final String? note;
-  final String? updatedBy;
+class DeliveryInfo {
+  final int id;
+  final int orderId;
+  final String? driverName;
+  final String? driverPhone;
+  final String? vehicleInfo;
+  final String status;
+  final DateTime? pickupTime;
+  final DateTime? estimatedArrivalTime;
+  final DateTime? actualDeliveryTime;
+  final String? deliveryNotes;
+  final String? currentLocation;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
-  OrderStatusUpdate({
+  DeliveryInfo({
+    required this.id,
+    required this.orderId,
     required this.status,
-    required this.timestamp,
-    this.note,
-    this.updatedBy,
+    this.driverName,
+    this.driverPhone,
+    this.vehicleInfo,
+    this.pickupTime,
+    this.estimatedArrivalTime,
+    this.actualDeliveryTime,
+    this.deliveryNotes,
+    this.currentLocation,
+    this.createdAt,
+    this.updatedAt,
   });
 
-  factory OrderStatusUpdate.fromJson(Map<String, dynamic> json) => _$OrderStatusUpdateFromJson(json);
-  Map<String, dynamic> toJson() => _$OrderStatusUpdateToJson(this);
+  factory DeliveryInfo.fromJson(Map<String, dynamic> json) {
+    return DeliveryInfo(
+      id: json['id'] is int ? json['id'] as int : int.tryParse('${json['id']}') ?? 0,
+      orderId: json['orderId'] is int
+          ? json['orderId'] as int
+          : int.tryParse('${json['orderId']}') ?? 0,
+      status: json['status']?.toString() ?? 'PENDING',
+      driverName: json['driverName']?.toString(),
+      driverPhone: json['driverPhone']?.toString(),
+      vehicleInfo: json['vehicleInfo']?.toString(),
+      pickupTime: Order._parseDate(json['pickupTime']),
+      estimatedArrivalTime: Order._parseDate(json['estimatedArrivalTime']),
+      actualDeliveryTime: Order._parseDate(json['actualDeliveryTime']),
+      deliveryNotes: json['deliveryNotes']?.toString(),
+      currentLocation: json['currentLocation']?.toString(),
+      createdAt: Order._parseDate(json['createdAt']),
+      updatedAt: Order._parseDate(json['updatedAt']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'orderId': orderId,
+      'status': status,
+      'driverName': driverName,
+      'driverPhone': driverPhone,
+      'vehicleInfo': vehicleInfo,
+      'pickupTime': pickupTime?.toIso8601String(),
+      'estimatedArrivalTime': estimatedArrivalTime?.toIso8601String(),
+      'actualDeliveryTime': actualDeliveryTime?.toIso8601String(),
+      'deliveryNotes': deliveryNotes,
+      'currentLocation': currentLocation,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+    }..removeWhere((key, value) => value == null);
+  }
 }
 
-@JsonSerializable()
+OrderStatus _parseOrderStatus(dynamic value) {
+  if (value == null) return OrderStatus.pending;
+  final normalized = value.toString().toUpperCase();
+  return OrderStatus.values.firstWhere(
+    (status) => status.name.toUpperCase() == normalized,
+    orElse: () => OrderStatus.pending,
+  );
+}
+
+PaymentMethod _parsePaymentMethod(dynamic value) {
+  if (value == null) return PaymentMethod.stripe;
+  final normalized = value.toString().toUpperCase();
+  return PaymentMethod.values.firstWhere(
+    (method) => method.name.toUpperCase() == normalized,
+    orElse: () => PaymentMethod.stripe,
+  );
+}
+
+PaymentStatus _parsePaymentStatus(dynamic value) {
+  if (value == null) return PaymentStatus.pending;
+  final normalized = value.toString().toUpperCase();
+  return PaymentStatus.values.firstWhere(
+    (status) => status.name.toUpperCase() == normalized,
+    orElse: () => PaymentStatus.pending,
+  );
+}
+
+
 class CreateOrderRequest {
-  final List<CreateOrderItemRequest> items;
-  final Address deliveryAddress;
-  final PaymentMethod paymentMethod;
+  final List<CreateOrderItemRequest> orderItems;
+  final String orderType;
+  final String? deliveryAddress;
+  final String? phoneNumber;
   final String? specialInstructions;
-  final String? couponCode;
 
   CreateOrderRequest({
-    required this.items,
-    required this.deliveryAddress,
-    required this.paymentMethod,
+    required this.orderItems,
+    required this.orderType,
+    this.deliveryAddress,
+    this.phoneNumber,
     this.specialInstructions,
-    this.couponCode,
   });
 
-  factory CreateOrderRequest.fromJson(Map<String, dynamic> json) => _$CreateOrderRequestFromJson(json);
-  Map<String, dynamic> toJson() => _$CreateOrderRequestToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'orderItems': orderItems.map((item) => item.toJson()).toList(),
+      'orderType': orderType,
+      'deliveryAddress': deliveryAddress,
+      'phoneNumber': phoneNumber,
+      'specialInstructions': specialInstructions,
+    }..removeWhere((key, value) => value == null);
+  }
 }
 
-@JsonSerializable()
 class CreateOrderItemRequest {
   final int productId;
   final int quantity;
-  final List<String> customizations;
   final String? specialInstructions;
 
   CreateOrderItemRequest({
     required this.productId,
     required this.quantity,
-    required this.customizations,
     this.specialInstructions,
   });
 
-  factory CreateOrderItemRequest.fromJson(Map<String, dynamic> json) => _$CreateOrderItemRequestFromJson(json);
-  Map<String, dynamic> toJson() => _$CreateOrderItemRequestToJson(this);
-}
-
-@JsonSerializable()
-class OrderResponse {
-  final Order order;
-  final String message;
-
-  OrderResponse({
-    required this.order,
-    required this.message,
-  });
-
-  factory OrderResponse.fromJson(Map<String, dynamic> json) => _$OrderResponseFromJson(json);
-  Map<String, dynamic> toJson() => _$OrderResponseToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'productId': productId,
+      'quantity': quantity,
+      'specialInstructions': specialInstructions,
+    }..removeWhere((key, value) => value == null);
+  }
 }
