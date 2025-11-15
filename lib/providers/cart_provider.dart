@@ -19,10 +19,10 @@ class CartProvider extends ChangeNotifier {
   double get vat => _cart?.vat ?? 0.0;
   double get deliveryFee => _cart?.deliveryFee ?? 0.0;
   double get total => _cart?.total ?? 0.0;
-  String get formattedTotal => _cart?.formattedTotal ?? '\$0.00';
-  String get formattedSubtotal => _cart?.formattedSubtotal ?? '\$0.00';
-  String get formattedTax => _cart?.formattedVat ?? '\$0.00';
-  String get formattedDeliveryFee => _cart?.formattedDeliveryFee ?? 'FREE';
+  String get formattedTotal => _cart?.formattedTotal ?? '0 KHR';
+  String get formattedSubtotal => _cart?.formattedSubtotal ?? '0 KHR';
+  String get formattedTax => _cart?.formattedVat ?? '0 KHR';
+  String get formattedDeliveryFee => _cart?.formattedDeliveryFee ?? 'Free';
 
   CartProvider() {
     _initializeCart();

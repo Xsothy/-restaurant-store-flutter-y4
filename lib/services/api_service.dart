@@ -137,12 +137,6 @@ class ApiService {
     }
   }
 
-  static Future<List<ProductReview>> getProductReviews(int productId) async {
-    // Reviews are not part of the public API yet; return an empty list to avoid
-    // breaking the UI components that expect a collection.
-    return const [];
-  }
-
   // Cart APIs
   static Future<Cart> getCart() async {
     try {

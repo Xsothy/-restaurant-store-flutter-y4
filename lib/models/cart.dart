@@ -1,3 +1,11 @@
+import 'package:intl/intl.dart';
+
+String _formatCurrency(num value) {
+  final formatter = NumberFormat('#,###', 'en_US');
+  final rounded = value is int ? value : value.round();
+  return '${formatter.format(rounded)} KHR';
+}
+
 class CartItem {
   final int id;
   final int productId;
@@ -51,8 +59,8 @@ class CartItem {
 
   double get total => price * quantity;
 
-  String get formattedPrice => '\$${price.toStringAsFixed(2)}';
-  String get formattedSubtotal => '\$${subtotal.toStringAsFixed(2)}';
+  String get formattedPrice => _formatCurrency(price);
+  String get formattedSubtotal => _formatCurrency(subtotal);
 }
 
 class Cart {
@@ -111,10 +119,11 @@ class Cart {
     };
   }
 
-  String get formattedSubtotal => '\$${subtotal.toStringAsFixed(2)}';
-  String get formattedVat => '\$${vat.toStringAsFixed(2)}';
-  String get formattedDeliveryFee => deliveryFee == 0 ? 'FREE' : '\$${deliveryFee.toStringAsFixed(2)}';
-  String get formattedTotal => '\$${total.toStringAsFixed(2)}';
+  String get formattedSubtotal => _formatCurrency(subtotal);
+  String get formattedVat => _formatCurrency(vat);
+  String get formattedDeliveryFee =>
+      deliveryFee == 0 ? 'Free' : _formatCurrency(deliveryFee);
+  String get formattedTotal => _formatCurrency(total);
 
   Cart copyWith({
     int? id,

@@ -1,3 +1,11 @@
+import 'package:intl/intl.dart';
+
+String _formatOrderCurrency(num value) {
+  final formatter = NumberFormat('#,###', 'en_US');
+  final rounded = value is int ? value : value.round();
+  return '${formatter.format(rounded)} KHR';
+}
+
 class Order {
   final int id;
   final int customerId;
@@ -108,7 +116,7 @@ class Order {
     }..removeWhere((key, value) => value == null);
   }
 
-  String get formattedTotal => '\$${totalPrice.toStringAsFixed(2)}';
+  String get formattedTotal => _formatOrderCurrency(totalPrice);
 
   bool get isActive {
     switch (status) {
@@ -183,7 +191,7 @@ class OrderItem {
   }
 
   double get subtotal => totalPrice;
-  String get formattedSubtotal => '\$${totalPrice.toStringAsFixed(2)}';
+  String get formattedSubtotal => _formatOrderCurrency(totalPrice);
 }
 
 enum OrderStatus {

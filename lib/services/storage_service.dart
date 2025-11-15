@@ -133,75 +133,6 @@ class StorageService {
     return null;
   }
 
-  // Search History
-  static Future<void> addToSearchHistory(String searchTerm) async {
-    final history = getSearchHistory();
-    history.remove(searchTerm); // Remove if already exists
-    history.insert(0, searchTerm); // Add to beginning
-    
-    // Keep only last 10 searches
-    if (history.length > 10) {
-      history.removeLast();
-    }
-    
-    await _prefs.setStringList('search_history', history);
-  }
-
-  static List<String> getSearchHistory() {
-    return _prefs.getStringList('search_history') ?? [];
-  }
-
-  static Future<void> clearSearchHistory() async {
-    await _prefs.remove('search_history');
-  }
-
-  // Favorite Items
-  static Future<void> addToFavorites(int productId) async {
-    final favorites = getFavorites();
-    if (!favorites.contains(productId)) {
-      favorites.add(productId);
-      await _prefs.setStringList('favorites', favorites.map((id) => id.toString()).toList());
-    }
-  }
-
-  static Future<void> removeFromFavorites(int productId) async {
-    final favorites = getFavorites();
-    favorites.remove(productId);
-    await _prefs.setStringList('favorites', favorites.map((id) => id.toString()).toList());
-  }
-
-  static List<int> getFavorites() {
-    final favoritesStrings = _prefs.getStringList('favorites') ?? [];
-    return favoritesStrings.map((id) => int.tryParse(id) ?? 0).where((id) => id > 0).toList();
-  }
-
-  static Future<void> clearFavorites() async {
-    await _prefs.remove('favorites');
-  }
-
-  // Recently Viewed Products
-  static Future<void> addToRecentlyViewed(int productId) async {
-    final recentlyViewed = getRecentlyViewed();
-    recentlyViewed.remove(productId); // Remove if already exists
-    recentlyViewed.insert(0, productId); // Add to beginning
-    
-    // Keep only last 20 items
-    if (recentlyViewed.length > 20) {
-      recentlyViewed.removeLast();
-    }
-    
-    await _prefs.setStringList('recently_viewed', recentlyViewed.map((id) => id.toString()).toList());
-  }
-
-  static List<int> getRecentlyViewed() {
-    final viewedStrings = _prefs.getStringList('recently_viewed') ?? [];
-    return viewedStrings.map((id) => int.tryParse(id) ?? 0).where((id) => id > 0).toList();
-  }
-
-  static Future<void> clearRecentlyViewed() async {
-    await _prefs.remove('recently_viewed');
-  }
-
   // Delivery Addresses
   static Future<void> saveDeliveryAddresses(List<Map<String, dynamic>> addresses) async {
     await _prefs.setStringList('delivery_addresses', addresses.map((addr) => jsonEncode(addr)).toList());
@@ -236,43 +167,6 @@ class StorageService {
           return <String, dynamic>{};
         })
         .where((addr) => addr.isNotEmpty)
-        .toList();
-  }
-
-  // Payment Methods
-  static Future<void> savePaymentMethods(List<Map<String, dynamic>> paymentMethods) async {
-    await _prefs.setStringList('payment_methods', paymentMethods.map((method) => jsonEncode(method)).toList());
-  }
-
-  static Future<void> addPaymentMethod(Map<String, dynamic> paymentMethod) async {
-    final methods = getPaymentMethods();
-    methods.add(paymentMethod);
-    await savePaymentMethods(methods);
-  }
-
-  static Future<void> removePaymentMethod(int index) async {
-    final methods = getPaymentMethods();
-    if (index < methods.length) {
-      methods.removeAt(index);
-      await savePaymentMethods(methods);
-    }
-  }
-
-  static List<Map<String, dynamic>> getPaymentMethods() {
-    final methodsStrings = _prefs.getStringList('payment_methods') ?? [];
-    return methodsStrings
-        .map((method) {
-          try {
-            final decoded = jsonDecode(method);
-            if (decoded is Map<String, dynamic>) {
-              return Map<String, dynamic>.from(decoded);
-            }
-          } catch (e) {
-            // Ignore malformed entries and fall back to an empty map.
-          }
-          return <String, dynamic>{};
-        })
-        .where((method) => method.isNotEmpty)
         .toList();
   }
 
