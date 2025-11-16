@@ -100,6 +100,29 @@ class ApiService {
     }
   }
 
+  // Customer profile APIs
+  static Future<User> updateCustomerProfile({
+    required int customerId,
+    required String name,
+    required String email,
+    String? phone,
+    String? address,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'address': address,
+      }..removeWhere((key, value) => value == null || (value is String && value.isEmpty));
+
+      final response = await _dio.put('/customers/$customerId', data: body);
+      return User.fromJson(_asMap(response.data));
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // Product and Category APIs
   static Future<List<Category>> getCategories() async {
     try {
@@ -247,6 +270,22 @@ class ApiService {
         queryParameters: {'location': location},
       );
       return _asString(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Payment APIs
+  static Future<String> createPaymentIntent(int orderId) async {
+    try {
+      final response = await _dio.post('/orders/$orderId/payment-intent');
+      final data = _asMap(response.data);
+      final clientSecret =
+          data['clientSecret']?.toString() ?? data['client_secret']?.toString() ?? '';
+      if (clientSecret.isEmpty) {
+        throw 'Missing client secret from payment intent response';
+      }
+      return clientSecret;
     } on DioException catch (e) {
       throw _handleError(e);
     }

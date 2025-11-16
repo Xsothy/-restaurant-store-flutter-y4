@@ -141,47 +141,6 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  // Update user profile
-  Future<bool> updateProfile({
-    String? firstName,
-    String? lastName,
-    String? phone,
-    Address? address,
-  }) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      // This would typically call an update profile API
-      // For now, we'll just update the local user object
-      if (_user != null) {
-        String? updatedName;
-        if (firstName != null || lastName != null) {
-          final newFirst = firstName ?? _user!.firstName;
-          final newLast = lastName ?? _user!.lastName;
-          updatedName = [newFirst, newLast].where((part) => part.trim().isNotEmpty).join(' ').trim();
-        }
-
-        final updatedUser = _user!.copyWith(
-          name: (updatedName != null && updatedName.isNotEmpty) ? updatedName : null,
-          phone: phone ?? _user!.phone,
-          address: address ?? _user!.address,
-          updatedAt: DateTime.now(),
-        );
-
-        await StorageService.saveUser(updatedUser);
-        _user = updatedUser;
-      }
-
-      _setLoading(false);
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString();
-      _setLoading(false);
-      return false;
-    }
-  }
-
   // Refresh authentication token
   Future<bool> refreshToken() async => false;
 
@@ -313,6 +272,38 @@ class AuthProvider extends ChangeNotifier {
 
       // Logout after successful deletion
       await logout();
+
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> updateProfile({
+    required String name,
+    required String email,
+    String? phone,
+    String? address,
+  }) async {
+    if (_user == null) return false;
+
+    _setLoading(true);
+    _errorMessage = null;
+
+    try {
+      final updatedUser = await ApiService.updateCustomerProfile(
+        customerId: _user!.id,
+        name: name,
+        email: email,
+        phone: phone,
+        address: address,
+      );
+
+      _user = updatedUser;
+      await StorageService.saveUser(updatedUser);
 
       _setLoading(false);
       return true;

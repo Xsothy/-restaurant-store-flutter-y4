@@ -4,7 +4,8 @@ class AppConstants {
   static const String appVersion = '1.0.0';
   
   // API Configuration
-  static const String baseUrl = 'http://localhost:8080/api';
+  // Use 10.0.2.2 to access host machine from Android emulator.
+  static const String baseUrl = 'http://10.0.2.2:8080/api';
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
   
@@ -39,7 +40,9 @@ class AppConstants {
   static const String checkoutScreen = 'checkout';
   static const String orderTrackingScreen = 'order_tracking';
   static const String profileScreen = 'profile';
+  static const String editProfileScreen = 'edit_profile';
   static const String orderHistoryScreen = 'order_history';
+  static const String stripePaymentScreen = 'stripe_payment';
   
   // Error Messages
   static const String networkError = 'Please check your internet connection';
@@ -87,4 +90,8 @@ class AppConstants {
   static const String supportEmail = 'support@foodrush.com';
   static const String supportPhone = '+1-800-FOODRUSH';
   static const String supportWhatsApp = '+1-800-FOODRUSH';
+
+  // Payments
+  // Replace with your real Stripe publishable key for production.
+  static const String stripePublishableKey = 'pk_test_51SRWd5JZsrXY12RF2nT3Sh28W2tVqofwE71I5CpsJiYjtX0bX3bZcG71HTiXnxVbudAfMyQiqRrq9WgRidVFweXW00S7mbxjflR';
 }

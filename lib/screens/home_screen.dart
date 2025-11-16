@@ -6,7 +6,9 @@ import '../models/product.dart';
 import '../providers/auth_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/product_provider.dart';
+import '../providers/order_provider.dart';
 import '../utils/routes.dart';
+import '../utils/snackbar_helper.dart';
 import '../widgets/cached_app_image.dart';
 import '../widgets/cart_icon_button.dart';
 import '../widgets/custom_button.dart';
@@ -203,7 +205,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.all(AppConstants.defaultPadding),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 0.72,
+                    // Taller cards to avoid overflow from content
+                    childAspectRatio: 0.6,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -265,6 +268,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 return ChoiceChip(
                   label: const Text('All'),
                   selected: isSelected,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  shape: StadiumBorder(
+                    side: BorderSide(
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withOpacity(0.4),
+                    ),
+                  ),
                   onSelected: (_) => provider.filterByCategory(null),
                 );
               }
@@ -272,8 +286,19 @@ class _HomeScreenState extends State<HomeScreen> {
               final category = categories[index - 1];
               final isSelected = selectedId == category.id;
               return ChoiceChip(
-                label: Text(category.name),
+                label: Text(category.name, overflow: TextOverflow.ellipsis),
                 selected: isSelected,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                shape: StadiumBorder(
+                  side: BorderSide(
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context)
+                            .colorScheme
+                            .outline
+                            .withOpacity(0.4),
+                  ),
+                ),
                 onSelected: (_) => provider.filterByCategory(category),
               );
             },
@@ -364,6 +389,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.add_shopping_cart),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                 onPressed: () => _handleAddToCart(product),
               ),
             ],
@@ -380,17 +407,17 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(16),
         onTap: () => NavigationHelper.navigateToProductDetail(context, product.id),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CachedAppImage(
                 imageUrl: product.imageUrl,
-                height: 120,
+                height: 100,
                 width: double.infinity,
                 borderRadius: 12,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
                 product.name,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -405,19 +432,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     .bodySmall
                     ?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6)),
               ),
-              const Spacer(),
+              const SizedBox(height: 4),
               Row(
                 children: [
-                  Text(
-                    product.formattedPrice,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+                  Expanded(
+                    child: Text(
+                      product.formattedPrice,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.add_shopping_cart),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                     onPressed: () => _handleAddToCart(product),
                   ),
                 ],
@@ -430,51 +465,96 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildOrdersTab() {
-    return ListView(
-      padding: const EdgeInsets.all(AppConstants.defaultPadding),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.2)),
-          ),
-          child: Column(
+    return Consumer<OrderProvider>(
+      builder: (context, orderProvider, child) {
+        final isLoading = orderProvider.isLoadingOrders;
+        final orders = orderProvider.orders;
+
+        if (isLoading && orders.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (orders.isEmpty) {
+          return ListView(
+            padding: const EdgeInsets.all(AppConstants.defaultPadding),
             children: [
-              Icon(
-                Icons.receipt_long,
-                size: 64,
-                color: Theme.of(context).colorScheme.onBackground.withOpacity(0.3),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No orders yet',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Browse the menu and place your first order.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6)),
-              ),
-              const SizedBox(height: 24),
-              CustomButton(
-                text: 'Explore Menu',
-                icon: const Icon(Icons.restaurant_menu_outlined),
-                onPressed: () {
-                  setState(() {
-                    _selectedIndex = 1;
-                  });
-                },
+              Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.receipt_long,
+                      size: 64,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onBackground
+                          .withOpacity(0.3),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No orders yet',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Browse the menu and place your first order.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onBackground
+                                .withOpacity(0.6),
+                          ),
+                    ),
+                    const SizedBox(height: 24),
+                    CustomButton(
+                      text: 'Explore Menu',
+                      icon: const Icon(Icons.restaurant_menu_outlined),
+                      onPressed: () {
+                        setState(() {
+                          _selectedIndex = 1;
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ),
             ],
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () => context.read<OrderProvider>().loadOrders(),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(AppConstants.defaultPadding),
+            itemCount: orders.length,
+            itemBuilder: (context, index) {
+              final order = orders[index];
+              return ListTile(
+                title: Text('Order #${order.id}'),
+                subtitle: Text(
+                  '${order.status.name.toUpperCase()} • ${order.formattedTotal}',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => NavigationHelper.navigateToOrderTracking(
+                  context,
+                  order.id.toString(),
+                ),
+              );
+            },
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -609,13 +689,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ? '${product.name} added to cart'
         : cartProvider.errorMessage ?? 'Unable to add item to cart';
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: success
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.error,
-      ),
+    SnackbarHelper.showTopToast(
+      context,
+      message,
+      isError: !success,
     );
   }
 

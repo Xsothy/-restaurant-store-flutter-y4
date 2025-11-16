@@ -7,6 +7,7 @@ import '../providers/auth_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
 import '../utils/routes.dart';
+import '../utils/snackbar_helper.dart';
 import '../widgets/cached_app_image.dart';
 import '../widgets/cart_icon_button.dart';
 import '../widgets/custom_button.dart';
@@ -199,6 +200,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           child: ChoiceChip(
             label: const Text('Delivery'),
             selected: isDelivery,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            shape: StadiumBorder(
+              side: BorderSide(
+                color: isDelivery
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withOpacity(0.4),
+              ),
+            ),
             onSelected: (_) => setState(() => _orderType = 'DELIVERY'),
           ),
         ),
@@ -207,6 +219,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           child: ChoiceChip(
             label: const Text('Pickup'),
             selected: !isDelivery,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            shape: StadiumBorder(
+              side: BorderSide(
+                color: !isDelivery
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withOpacity(0.4),
+              ),
+            ),
             onSelected: (_) => setState(() => _orderType = 'PICKUP'),
           ),
         ),
@@ -222,13 +245,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         'icon': Icons.payments_outlined,
       },
       {
-        'id': 'aba',
-        'label': 'ABA Pay',
-        'icon': Icons.account_balance_wallet_outlined,
-      },
-      {
-        'id': 'card',
-        'label': 'Card',
+        'id': 'stripe',
+        'label': 'Payment',
         'icon': Icons.credit_card,
       },
     ];
@@ -240,9 +258,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         final optionId = option['id'] as String;
         final selected = _paymentMethod == optionId;
         return FilterChip(
-          avatar: Icon(option['icon'] as IconData),
-          label: Text(option['label'] as String),
+          avatar: Icon(
+            option['icon'] as IconData,
+            size: 18,
+          ),
+          label: Text(
+            option['label'] as String,
+            overflow: TextOverflow.ellipsis,
+          ),
           selected: selected,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          shape: StadiumBorder(
+            side: BorderSide(
+              color: selected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.outline.withOpacity(0.4),
+            ),
+          ),
           onSelected: (_) => setState(() => _paymentMethod = optionId),
         );
       }).toList(),
@@ -354,8 +386,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _handlePlaceOrder(CartProvider cartProvider, OrderProvider orderProvider) async {
     final cart = cartProvider.cart;
     if (cart == null || cart.items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Your cart is empty.')),
+      SnackbarHelper.showTopToast(
+        context,
+        'Your cart is empty.',
+        isError: true,
       );
       return;
     }
@@ -375,18 +409,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (!mounted) return;
 
     if (order != null) {
-      await cartProvider.loadCartFromServer();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppConstants.orderPlacedSuccess),
-          backgroundColor: Colors.green,
-        ),
-      );
-      NavigationHelper.navigateToOrderTracking(context, order.id.toString());
+      await cartProvider.clearCart();
+
+      if (_paymentMethod == 'stripe') {
+        SnackbarHelper.showTopToast(
+          context,
+          'Order created. Please complete payment.',
+        );
+        NavigationHelper.navigateToStripePayment(context, order.id.toString());
+      } else {
+        SnackbarHelper.showTopToast(
+          context,
+          AppConstants.orderPlacedSuccess,
+        );
+        NavigationHelper.navigateToOrderTracking(context, order.id.toString());
+      }
     } else {
       final message = orderProvider.errorMessage ?? AppConstants.generalError;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+      SnackbarHelper.showTopToast(
+        context,
+        message,
+        isError: true,
       );
     }
   }

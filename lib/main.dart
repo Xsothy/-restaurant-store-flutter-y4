@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -25,6 +27,16 @@ void main() async {
   // Initialize services
   await StorageService.init();
   ApiService.init();
+
+  // Configure Stripe (mobile only)
+  if (!kIsWeb) {
+    try {
+      Stripe.publishableKey = AppConstants.stripePublishableKey;
+      await Stripe.instance.applySettings();
+    } catch (e, _) {
+      debugPrint('Stripe initialization failed: $e');
+    }
+  }
   
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([

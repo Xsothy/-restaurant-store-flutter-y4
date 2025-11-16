@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../constants/app_constants.dart';
 import '../providers/auth_provider.dart';
 import '../utils/routes.dart';
+import '../utils/snackbar_helper.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 
@@ -55,11 +56,10 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
     if (!_formKey.currentState!.validate()) return;
     
     if (!_agreeToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please agree to the terms and conditions'),
-          backgroundColor: Colors.orange,
-        ),
+      SnackbarHelper.showTopToast(
+        context,
+        'Please agree to the terms and conditions',
+        isError: true,
       );
       return;
     }
@@ -82,20 +82,17 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
     });
 
     if (success) {
-      // Navigation will be handled by the router redirect
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppConstants.registrationSuccess),
-          backgroundColor: Colors.green,
-        ),
+      SnackbarHelper.showTopToast(
+        context,
+        AppConstants.registrationSuccess,
       );
+      NavigationHelper.navigateToHome(context);
     } else {
       // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage ?? AppConstants.generalError),
-          backgroundColor: Colors.red,
-        ),
+      SnackbarHelper.showTopToast(
+        context,
+        authProvider.errorMessage ?? AppConstants.generalError,
+        isError: true,
       );
     }
   }

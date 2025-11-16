@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../constants/app_constants.dart';
 import '../providers/auth_provider.dart';
 import '../utils/routes.dart';
+import '../utils/snackbar_helper.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 
@@ -59,20 +60,17 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     });
 
     if (success) {
-      // Navigation will be handled by the router redirect
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppConstants.loginSuccess),
-          backgroundColor: Colors.green,
-        ),
+      SnackbarHelper.showTopToast(
+        context,
+        AppConstants.loginSuccess,
       );
+      NavigationHelper.navigateToHome(context);
     } else {
       // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage ?? AppConstants.generalError),
-          backgroundColor: Colors.red,
-        ),
+      SnackbarHelper.showTopToast(
+        context,
+        authProvider.errorMessage ?? AppConstants.generalError,
+        isError: true,
       );
     }
   }
@@ -324,11 +322,9 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Password reset email sent!'),
-                  backgroundColor: Colors.green,
-                ),
+              SnackbarHelper.showTopToast(
+                context,
+                'Password reset email sent!',
               );
             },
             child: const Text('Send'),

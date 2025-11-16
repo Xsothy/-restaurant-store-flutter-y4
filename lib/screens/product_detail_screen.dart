@@ -5,6 +5,7 @@ import '../models/product.dart';
 import '../providers/cart_provider.dart';
 import '../providers/product_provider.dart';
 import '../utils/routes.dart';
+import '../utils/snackbar_helper.dart';
 import '../widgets/cached_app_image.dart';
 import '../widgets/cart_icon_button.dart';
 import '../widgets/custom_button.dart';
@@ -109,13 +110,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     final message = success
                         ? '${product.name} added to cart'
                         : cartProvider.errorMessage ?? 'Unable to add item to cart';
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(message),
-                        backgroundColor: success
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.error,
-                      ),
+                    SnackbarHelper.showTopToast(
+                      context,
+                      message,
+                      isError: !success,
                     );
                   },
                 ),

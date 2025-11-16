@@ -5,6 +5,7 @@ import 'package:lottie/lottie.dart';
 import '../constants/app_constants.dart';
 import '../providers/auth_provider.dart';
 import '../utils/routes.dart';
+import '../utils/snackbar_helper.dart';
 import '../widgets/custom_button.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -192,10 +193,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       TextButton(
                         onPressed: () {
                           // Show a snackbar or handle skip logic
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Welcome to ${AppConstants.appName}!'),
-                            ),
+                          SnackbarHelper.showTopToast(
+                            context,
+                            'Welcome to ${AppConstants.appName}!',
                           );
                         },
                         child: Text(

@@ -4,6 +4,7 @@ import '../constants/app_constants.dart';
 import '../models/cart.dart';
 import '../providers/cart_provider.dart';
 import '../utils/routes.dart';
+import '../utils/snackbar_helper.dart';
 import '../widgets/cached_app_image.dart';
 import '../widgets/custom_button.dart';
 
@@ -302,11 +303,9 @@ class CartScreen extends StatelessWidget {
             onPressed: () {
               Navigator.pop(context);
               cartProvider.clearCart();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Cart cleared'),
-                  backgroundColor: Colors.green,
-                ),
+              SnackbarHelper.showTopToast(
+                context,
+                'Cart cleared',
               );
             },
             style: ElevatedButton.styleFrom(

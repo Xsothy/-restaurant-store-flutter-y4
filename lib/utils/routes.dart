@@ -13,11 +13,14 @@ import '../screens/cart_screen.dart';
 import '../screens/checkout_screen.dart';
 import '../screens/order_tracking_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/edit_profile_screen.dart';
 import '../screens/order_history_screen.dart';
+import '../screens/stripe_payment_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: AppConstants.splashScreen,
+    // Use a valid path for the initial route.
+    initialLocation: '/splash',
     debugLogDiagnostics: true,
     routes: [
       // Splash Screen
@@ -92,12 +95,28 @@ class AppRouter {
             },
           ),
 
+          // Stripe card payment
+          GoRoute(
+            name: AppConstants.stripePaymentScreen,
+            path: 'order/:orderId/pay',
+            builder: (context, state) {
+              final orderId = int.parse(state.pathParameters['orderId']!);
+              return StripePaymentScreen(orderId: orderId);
+            },
+          ),
+
           // Profile
           GoRoute(
             name: AppConstants.profileScreen,
             path: 'profile',
             builder: (context, state) => const ProfileScreen(),
             routes: [
+              // Edit Profile
+              GoRoute(
+                name: AppConstants.editProfileScreen,
+                path: 'edit',
+                builder: (context, state) => const EditProfileScreen(),
+              ),
               // Order History
               GoRoute(
                 name: AppConstants.orderHistoryScreen,
@@ -223,6 +242,14 @@ class NavigationHelper {
   static void navigateToProfile(BuildContext context) {
     context.go('/home/profile');
   }
+
+  static void navigateToEditProfile(BuildContext context) {
+    context.go('/home/profile/edit');
+  }
+
+  static void navigateToStripePayment(BuildContext context, String orderId) {
+    context.go('/home/order/$orderId/pay');
+  }
   
   static void navigateToOrderHistory(BuildContext context) {
     context.go('/home/profile/orders');
@@ -248,7 +275,9 @@ class RouteNames {
   static const String cart = AppConstants.cartScreen;
   static const String checkout = AppConstants.checkoutScreen;
   static const String orderTracking = AppConstants.orderTrackingScreen;
+  static const String stripePayment = AppConstants.stripePaymentScreen;
   static const String profile = AppConstants.profileScreen;
+  static const String editProfile = AppConstants.editProfileScreen;
   static const String orderHistory = AppConstants.orderHistoryScreen;
 }
 
