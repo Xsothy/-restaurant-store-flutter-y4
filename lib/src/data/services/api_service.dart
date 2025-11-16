@@ -81,6 +81,25 @@ class ApiService {
 
   static String get baseUrl => _dio.options.baseUrl;
 
+  static String buildWebSocketUrl({String? authToken}) {
+    final httpUri = Uri.parse(baseUrl);
+    final scheme = httpUri.scheme == 'https' ? 'wss' : 'ws';
+    final pathSegments = <String>[
+      ...httpUri.pathSegments.where((segment) => segment.isNotEmpty),
+      'ws',
+    ];
+    
+    final uri = Uri(
+      scheme: scheme,
+      host: httpUri.host,
+      port: httpUri.hasPort ? httpUri.port : null,
+      pathSegments: pathSegments,
+    );
+    
+    return uri.toString();
+  }
+
+  @Deprecated('Use buildWebSocketUrl() and subscribe to /topic/orders/{orderId} instead')
   static Uri buildOrderTrackingWebSocketUri(int orderId, {String? authToken}) {
     final httpUri = Uri.parse(baseUrl);
     final scheme = httpUri.scheme == 'https' ? 'wss' : 'ws';
@@ -331,6 +350,16 @@ class ApiService {
         queryParameters: {'status': status},
       );
       return _asString(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // WebSocket Info API
+  static Future<Map<String, dynamic>> getWebSocketInfo() async {
+    try {
+      final response = await _dio.get('/websocket/info');
+      return _asMap(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
     }
