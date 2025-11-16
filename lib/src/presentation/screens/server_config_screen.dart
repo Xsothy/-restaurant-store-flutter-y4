@@ -39,14 +39,14 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
   String? _validateUrl(String? value) {
     final trimmed = value?.trim() ?? '';
     if (trimmed.isEmpty) {
-      return 'Base URL is required';
+      return 'Host or URL is required';
     }
     final candidate = (trimmed.startsWith('http://') || trimmed.startsWith('https://'))
         ? trimmed
         : 'http://$trimmed';
     final uri = Uri.tryParse(candidate);
-    if (uri == null || uri.scheme.isEmpty || uri.host.isEmpty) {
-      return 'Please enter a valid URL';
+    if (uri == null || uri.host.isEmpty) {
+      return 'Please enter a valid host (e.g. localhost:8080)';
     }
     return null;
   }
@@ -106,8 +106,8 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
                     key: _formKey,
                     child: CustomTextField(
                       controller: _controller,
-                      label: 'Backend Base URL',
-                      hint: 'http://192.168.1.10:8080/api',
+                      label: 'Backend host (host:port or full URL)',
+                      hint: 'localhost:8080',
                       keyboardType: TextInputType.url,
                       prefixIcon: const Icon(Icons.link),
                       validator: _validateUrl,

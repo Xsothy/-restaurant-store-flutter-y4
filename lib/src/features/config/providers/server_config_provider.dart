@@ -78,19 +78,30 @@ class ServerConfigProvider extends ChangeNotifier {
       return null;
     }
 
+    // Allow users to enter just host:port (e.g. localhost:8080). If no scheme
+    // is provided, default to http and append `/api` as the base path.
     final candidate = (trimmed.startsWith('http://') || trimmed.startsWith('https://'))
         ? trimmed
         : 'http://$trimmed';
 
     final uri = Uri.tryParse(candidate);
-    if (uri == null || uri.scheme.isEmpty || uri.host.isEmpty) {
+    if (uri == null || uri.host.isEmpty) {
       return null;
     }
 
-    final sanitizedPath = uri.path.endsWith('/') && uri.path.length > 1
-        ? uri.path.substring(0, uri.path.length - 1)
-        : uri.path;
-    final normalized = uri.replace(path: sanitizedPath);
+    // Default path to `/api` when none is provided.
+    var path = uri.path;
+    if (path.isEmpty || path == '/') {
+      path = '/api';
+    }
+    if (!path.startsWith('/')) {
+      path = '/$path';
+    }
+    if (path.endsWith('/') && path.length > 1) {
+      path = path.substring(0, path.length - 1);
+    }
+
+    final normalized = uri.replace(path: path);
     return normalized.toString();
   }
 }

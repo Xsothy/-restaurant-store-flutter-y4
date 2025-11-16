@@ -8,8 +8,8 @@ import 'package:restaurant_store_flutter/src/data/models/user.dart';
 
 class StorageService {
   static late SharedPreferences _prefs;
-  static late Box<Map<String, dynamic>> _cartBox;
-  static late Box<Map<String, dynamic>> _userBox;
+  static late Box _cartBox;
+  static late Box _userBox;
   static bool _initialized = false;
 
   static Future<void> init() async {
@@ -19,13 +19,9 @@ class StorageService {
 
     _prefs = await SharedPreferences.getInstance();
 
-    // Initialize Hive boxes
-    _cartBox = Hive.isBoxOpen('cart')
-        ? Hive.box<Map<String, dynamic>>('cart')
-        : await Hive.openBox<Map<String, dynamic>>('cart');
-    _userBox = Hive.isBoxOpen('user')
-        ? Hive.box<Map<String, dynamic>>('user')
-        : await Hive.openBox<Map<String, dynamic>>('user');
+    // Initialize Hive boxes (untyped to avoid runtime cast issues)
+    _cartBox = Hive.isBoxOpen('cart') ? Hive.box('cart') : await Hive.openBox('cart');
+    _userBox = Hive.isBoxOpen('user') ? Hive.box('user') : await Hive.openBox('user');
 
     _initialized = true;
   }
@@ -94,7 +90,10 @@ class StorageService {
     final cartData = _cartBox.get('currentCart');
     if (cartData != null) {
       try {
-        return Cart.fromJson(cartData);
+        if (cartData is Map) {
+          final map = Map<String, dynamic>.from(cartData as Map);
+          return Cart.fromJson(map);
+        }
       } catch (e) {
         // Clear corrupted cart data
         _cartBox.delete('currentCart');

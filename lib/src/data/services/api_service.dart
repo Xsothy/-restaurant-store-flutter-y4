@@ -84,16 +84,13 @@ class ApiService {
   static String buildWebSocketUrl({String? authToken}) {
     final httpUri = Uri.parse(baseUrl);
     final scheme = httpUri.scheme == 'https' ? 'wss' : 'ws';
-    final pathSegments = <String>[
-      ...httpUri.pathSegments.where((segment) => segment.isNotEmpty),
-      'ws',
-    ];
-    
     final uri = Uri(
       scheme: scheme,
       host: httpUri.host,
       port: httpUri.hasPort ? httpUri.port : null,
-      pathSegments: pathSegments,
+      // For Spring SockJS STOMP endpoints, raw WebSocket clients should use
+      // `/ws/websocket` rather than the SockJS HTTP entrypoint `/ws`.
+      path: '/ws/websocket',
     );
     
     return uri.toString();
