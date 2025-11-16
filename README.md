@@ -18,7 +18,7 @@ A modern Flutter mobile application for restaurant ordering with Material Design
 
 #### **Authentication System**
 - ✅ **Auth Provider**: Complete authentication state management
-- ✅ **Login Screen**: Modern UI with form validation and social auth placeholders
+- ✅ **Login Screen**: Modern UI with email/password authentication and validation
 - ✅ **Register Screen**: Comprehensive registration with all fields
 - ✅ **Token Management**: JWT token handling with refresh logic
 - ✅ **User Profile**: User data persistence and management
@@ -93,7 +93,7 @@ A modern Flutter mobile application for restaurant ordering with Material Design
 | Screen | Status | Features |
 |--------|--------|----------|
 | Splash Screen | ✅ Complete | Animated logo, loading states, navigation |
-| Login Screen | ✅ Complete | Form validation, social auth placeholders |
+| Login Screen | ✅ Complete | Email/password authentication with validation |
 | Register Screen | ✅ Complete | Full registration with validation |
 | Home Screen | ✅ Complete | Tabbed interface, search, featured items |
 | Menu Screen | ✅ Complete | Product grid, filters, search |
@@ -261,9 +261,9 @@ The app connects to a Spring Boot backend with the following endpoints:
 
 ### **🔐 Authentication**
 - JWT token-based authentication with refresh tokens
-- Social authentication integration ready (Google, Facebook)
 - Persistent login state across app restarts
 - Secure token storage and management
+- Configurable backend base URL prompt for demo deployments
 
 ### **🛒 Shopping Experience**
 - Advanced product search with real-time filtering

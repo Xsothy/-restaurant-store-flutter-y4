@@ -72,6 +72,19 @@ class StorageService {
     await _userBox.delete('currentUser');
   }
 
+  // API Configuration
+  static Future<void> saveApiBaseUrl(String url) async {
+    await _prefs.setString(AppConstants.apiBaseUrlKey, url);
+  }
+
+  static String? getApiBaseUrl() {
+    return _prefs.getString(AppConstants.apiBaseUrlKey);
+  }
+
+  static Future<void> removeApiBaseUrl() async {
+    await _prefs.remove(AppConstants.apiBaseUrlKey);
+  }
+
   // Cart Management (using Hive for better performance with complex objects)
   static Future<void> saveCart(Cart cart) async {
     await _cartBox.put('currentCart', cart.toJson());

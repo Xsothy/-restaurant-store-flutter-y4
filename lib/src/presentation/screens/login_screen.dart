@@ -208,61 +208,11 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                       .fadeIn(duration: 600.ms, delay: 500.ms)
                       .slideY(begin: 0.3, end: 0),
                     
-                    const SizedBox(height: 30),
-                    
-                    // Divider
-                    Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            'OR',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6),
-                            ),
-                          ),
-                        ),
-                        const Expanded(child: Divider()),
-                      ],
-                    ).animate(controller: _animationController)
-                      .fadeIn(duration: 600.ms, delay: 600.ms),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Social Login Buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CustomButton(
-                            text: 'Google',
-                            isOutlined: true,
-                            onPressed: () {
-                              // TODO: Implement Google sign-in
-                              _showNotImplementedDialog('Google Sign-In');
-                            },
-                            icon: const Icon(Icons.g_mobiledata, size: 20),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: CustomButton(
-                            text: 'Facebook',
-                            isOutlined: true,
-                            onPressed: () {
-                              // TODO: Implement Facebook sign-in
-                              _showNotImplementedDialog('Facebook Sign-In');
-                            },
-                            icon: const Icon(Icons.facebook, size: 20),
-                          ),
-                        ),
-                      ],
-                    ).animate(controller: _animationController)
-                      .fadeIn(duration: 600.ms, delay: 700.ms),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 40),
               
               // Sign Up Link
@@ -329,22 +279,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
               );
             },
             child: const Text('Send'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showNotImplementedDialog(String feature) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(feature),
-        content: Text('$feature will be available soon!'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
           ),
         ],
       ),

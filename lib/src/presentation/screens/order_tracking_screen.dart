@@ -28,6 +28,12 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    context.read<OrderProvider>().stopOrderTracking();
+    super.dispose();
+  }
+
   Future<void> _loadData() async {
     final id = int.tryParse(widget.orderId);
     if (id == null) return;
@@ -36,6 +42,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       provider.loadOrderDetails(id),
       provider.loadDeliveryInfo(id),
     ]);
+    if (mounted) {
+      provider.startOrderTracking(id);
+    }
   }
 
   @override
@@ -66,6 +75,15 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(AppConstants.defaultPadding),
               children: [
+                if (orderProvider.trackingError != null)
+                  _buildTrackingErrorCard(orderProvider, order),
+                if (orderProvider.trackingError != null) const SizedBox(height: 16),
+                if (orderProvider.trackingError == null && !orderProvider.isTrackingOrder)
+                  _buildReconnectCard(orderProvider, order),
+                if (orderProvider.trackingError == null && orderProvider.isTrackingOrder)
+                  _buildLiveUpdateBanner(),
+                if (orderProvider.isTrackingOrder || orderProvider.trackingError != null)
+                  const SizedBox(height: 16),
                 _buildOrderHeader(order),
                 const SizedBox(height: 16),
                 _buildTimeline(order),
@@ -90,6 +108,102 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLiveUpdateBanner() {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.wifi_tethering, color: theme.colorScheme.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Live updates enabled. We\'ll update the timeline automatically.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReconnectCard(OrderProvider provider, Order order) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.wifi_off, color: theme.colorScheme.onSurface.withOpacity(0.6)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Live tracking paused. Reconnect to keep the status up-to-date.',
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
+          TextButton(
+            onPressed: () => provider.startOrderTracking(order.id),
+            child: const Text('Reconnect'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrackingErrorCard(OrderProvider provider, Order order) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.error.withOpacity(0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.error_outline, color: theme.colorScheme.error),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  provider.trackingError ?? 'Connection lost',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => provider.startOrderTracking(order.id),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try Again'),
+            ),
+          ),
+        ],
       ),
     );
   }

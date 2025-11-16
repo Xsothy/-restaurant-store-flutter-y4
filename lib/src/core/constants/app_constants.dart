@@ -9,6 +9,7 @@ class AppConstants {
   static const String cartKey = 'cart_items';
   static const String themeKey = 'theme_mode';
   static const String languageKey = 'language_code';
+  static const String apiBaseUrlKey = 'api_base_url';
   
   // UI Constants
   static const double defaultPadding = 16.0;
@@ -27,6 +28,7 @@ class AppConstants {
   static const String splashScreen = 'splash';
   static const String loginScreen = 'login';
   static const String registerScreen = 'register';
+  static const String serverConfigScreen = 'server_config';
   static const String homeScreen = 'home';
   static const String menuScreen = 'menu';
   static const String productDetailScreen = 'product_detail';

@@ -12,10 +12,11 @@ import 'package:restaurant_store_flutter/src/data/models/user.dart';
 class ApiService {
   static late Dio _dio;
 
-  static void init() {
+  static void init({String? baseUrl}) {
+    final resolvedBaseUrl = _sanitizeBaseUrl(baseUrl ?? AppEnvironment.apiBaseUrl);
     _dio = Dio(
       BaseOptions(
-        baseUrl: AppEnvironment.apiBaseUrl,
+        baseUrl: resolvedBaseUrl,
         connectTimeout: AppEnvironment.apiConnectionTimeout,
         receiveTimeout: AppEnvironment.apiReceiveTimeout,
         headers: {
@@ -72,6 +73,34 @@ class ApiService {
 
   static void clearAuthToken() {
     _dio.options.headers.remove('Authorization');
+  }
+
+  static void updateBaseUrl(String baseUrl) {
+    _dio.options.baseUrl = _sanitizeBaseUrl(baseUrl);
+  }
+
+  static String get baseUrl => _dio.options.baseUrl;
+
+  static Uri buildOrderTrackingWebSocketUri(int orderId, {String? authToken}) {
+    final httpUri = Uri.parse(baseUrl);
+    final scheme = httpUri.scheme == 'https' ? 'wss' : 'ws';
+    final pathSegments = <String>[
+      ...httpUri.pathSegments.where((segment) => segment.isNotEmpty),
+      'deliveries',
+      'track',
+      orderId.toString(),
+    ];
+    final queryParameters = Map<String, String>.from(httpUri.queryParameters);
+    if (authToken != null && authToken.isNotEmpty) {
+      queryParameters['token'] = authToken;
+    }
+    return Uri(
+      scheme: scheme,
+      host: httpUri.host,
+      port: httpUri.hasPort ? httpUri.port : null,
+      pathSegments: pathSegments,
+      queryParameters: queryParameters.isEmpty ? null : queryParameters,
+    );
   }
 
   // Authentication APIs
@@ -356,6 +385,17 @@ class ApiService {
       }
     }
     return data?.toString() ?? '';
+  }
+
+  static String _sanitizeBaseUrl(String baseUrl) {
+    var normalized = baseUrl.trim();
+    if (normalized.isEmpty) {
+      return AppEnvironment.apiBaseUrl;
+    }
+    while (normalized.endsWith('/') && normalized.length > 1) {
+      normalized = normalized.substring(0, normalized.length - 1);
+    }
+    return normalized;
   }
 
   static AppException _handleError(DioException e) {

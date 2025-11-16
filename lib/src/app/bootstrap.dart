@@ -18,7 +18,8 @@ class AppBootstrapper {
     await AppEnvironment.load();
     await Hive.initFlutter();
     await StorageService.init();
-    ApiService.init();
+    final storedBaseUrl = StorageService.getApiBaseUrl();
+    ApiService.init(baseUrl: storedBaseUrl ?? AppEnvironment.apiBaseUrl);
 
     await _initializeStripe();
     await _configurePreferredOrientations();

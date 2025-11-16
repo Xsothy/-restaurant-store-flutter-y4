@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:restaurant_store_flutter/src/core/constants/app_constants.dart';
 import 'package:restaurant_store_flutter/src/features/auth/providers/auth_provider.dart';
+import 'package:restaurant_store_flutter/src/features/config/providers/server_config_provider.dart';
 import 'package:restaurant_store_flutter/src/presentation/screens/cart_screen.dart';
 import 'package:restaurant_store_flutter/src/presentation/screens/checkout_screen.dart';
 import 'package:restaurant_store_flutter/src/presentation/screens/edit_profile_screen.dart';
@@ -15,6 +16,7 @@ import 'package:restaurant_store_flutter/src/presentation/screens/order_tracking
 import 'package:restaurant_store_flutter/src/presentation/screens/product_detail_screen.dart';
 import 'package:restaurant_store_flutter/src/presentation/screens/profile_screen.dart';
 import 'package:restaurant_store_flutter/src/presentation/screens/register_screen.dart';
+import 'package:restaurant_store_flutter/src/presentation/screens/server_config_screen.dart';
 import 'package:restaurant_store_flutter/src/presentation/screens/splash_screen.dart';
 import 'package:restaurant_store_flutter/src/presentation/screens/stripe_payment_screen.dart';
 
@@ -24,6 +26,12 @@ class AppRouter {
     initialLocation: '/splash',
     debugLogDiagnostics: true,
     routes: [
+      GoRoute(
+        name: AppConstants.serverConfigScreen,
+        path: '/server-config',
+        builder: (context, state) => const ServerConfigScreen(),
+      ),
+
       // Splash Screen
       GoRoute(
         name: AppConstants.splashScreen,
@@ -133,6 +141,34 @@ class AppRouter {
     // Redirect logic
     redirect: (context, state) {
       AuthProvider? authProvider;
+      ServerConfigProvider? serverConfigProvider;
+      try {
+        serverConfigProvider = Provider.of<ServerConfigProvider>(context, listen: false);
+      } catch (_) {
+        serverConfigProvider = null;
+      }
+
+      if (serverConfigProvider != null) {
+        if (!serverConfigProvider.isInitialized) {
+          return null;
+        }
+
+        final needsSetup = serverConfigProvider.requiresConfiguration;
+        final navigatingToConfig = state.uri.toString().startsWith('/server-config');
+
+        if (needsSetup && !navigatingToConfig) {
+          return '/server-config';
+        }
+
+        if (!needsSetup && navigatingToConfig) {
+          return '/splash';
+        }
+
+        if (needsSetup) {
+          return null;
+        }
+      }
+
       try {
         authProvider = Provider.of<AuthProvider>(context, listen: false);
       } catch (_) {
@@ -200,6 +236,10 @@ class AppRouter {
 
 // Navigation helper methods
 class NavigationHelper {
+  static void navigateToServerConfig(BuildContext context) {
+    context.go('/server-config');
+  }
+
   static void navigateToSplash(BuildContext context) {
     context.go('/splash');
   }
@@ -267,6 +307,7 @@ class NavigationHelper {
 
 // Route names for easy reference
 class RouteNames {
+  static const String serverConfig = AppConstants.serverConfigScreen;
   static const String splash = AppConstants.splashScreen;
   static const String login = AppConstants.loginScreen;
   static const String register = AppConstants.registerScreen;
