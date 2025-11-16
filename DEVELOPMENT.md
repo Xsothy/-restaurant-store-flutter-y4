@@ -41,7 +41,13 @@ This guide provides comprehensive information for developers working on the Rest
    flutter packages pub run build_runner build --delete-conflicting-outputs
    ```
 
-4. **Run the app**
+4. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   # Update API_BASE_URL, STRIPE_PUBLISHABLE_KEY, etc.
+   ```
+
+5. **Run the app**
    ```bash
    flutter run
    ```
@@ -58,46 +64,24 @@ chmod +x scripts/dev.sh
 ./scripts/dev.sh
 ```
 
+### Environment Configuration
+
+- Runtime configuration is provided by `.env` and loaded through `lib/src/core/config/app_environment.dart`.
+- Copy `.env.example` to `.env` for each environment and update keys like `API_BASE_URL`, `API_TIMEOUT`, and `STRIPE_PUBLISHABLE_KEY`.
+- Defaults baked into `AppEnvironment` mirror `.env.example`, ensuring the app can still boot when optional values are omitted.
+
 ## 🏗️ Project Structure
 
 ```
 restaurant_store_flutter/
 ├── lib/
-│   ├── constants/          # App constants and themes
-│   │   ├── app_constants.dart    # Global constants
-│   │   └── theme.dart          # App theming
-│   ├── models/            # Data models with JSON serialization
-│   │   ├── user.dart            # User-related models
-│   │   ├── product.dart         # Product and category models
-│   │   ├── cart.dart            # Cart management models
-│   │   └── order.dart           # Order and delivery models
-│   ├── providers/         # State management
-│   │   ├── auth_provider.dart    # Authentication state
-│   │   ├── cart_provider.dart    # Shopping cart state
-│   │   ├── product_provider.dart # Product browsing state
-│   │   └── order_provider.dart  # Order management state
-│   ├── services/          # External services
-│   │   ├── api_service.dart     # HTTP client and API calls
-│   │   └── storage_service.dart # Local storage management
-│   ├── screens/           # UI screens
-│   │   ├── splash_screen.dart
-│   │   ├── login_screen.dart
-│   │   ├── register_screen.dart
-│   │   ├── home_screen.dart
-│   │   ├── menu_screen.dart
-│   │   ├── product_detail_screen.dart
-│   │   ├── cart_screen.dart
-│   │   ├── checkout_screen.dart
-│   │   ├── order_tracking_screen.dart
-│   │   ├── profile_screen.dart
-│   │   └── order_history_screen.dart
-│   ├── widgets/           # Reusable UI components
-│   │   ├── custom_button.dart
-│   │   ├── custom_text_field.dart
-│   │   └── ... (more widgets)
-│   ├── utils/             # Utility functions
-│   │   └── routes.dart         # Navigation configuration
-│   └── main.dart          # App entry point
+│   ├── src/
+│   │   ├── app/                # App bootstrap and widget tree
+│   │   ├── core/               # Constants, routing, theming, shared utils
+│   │   ├── data/               # Models and services
+│   │   ├── features/           # Domain-specific providers and logic
+│   │   └── presentation/       # Screens and widgets
+│   └── main.dart               # App entry point
 ├── assets/               # Static assets
 │   ├── images/           # Image files
 │   ├── animations/       # Lottie animations
