@@ -18,7 +18,7 @@ class OrderTrackingService {
   }) {
     close();
     try {
-      final channel = WebSocketChannel.connect(uri, headers: headers);
+      final channel = WebSocketChannel.connect(uri);
       _channel = channel;
       _subscription = channel.stream.listen(
         onEvent,

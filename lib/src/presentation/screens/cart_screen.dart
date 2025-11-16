@@ -8,6 +8,8 @@ import 'package:restaurant_store_flutter/src/features/cart/providers/cart_provid
 import 'package:restaurant_store_flutter/src/presentation/widgets/cached_app_image.dart';
 import 'package:restaurant_store_flutter/src/presentation/widgets/custom_button.dart';
 
+import '../../core/routing/app_router.dart';
+
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 

@@ -21,7 +21,7 @@ class AppEnvironment {
     }
 
     try {
-      await dotenv.load(fileName: '.env', fallbackFileName: '.env.example');
+      await dotenv.load(fileName: '.env');
     } catch (error, stackTrace) {
       debugPrint('Failed to load .env file: $error');
       FlutterError.presentError(
