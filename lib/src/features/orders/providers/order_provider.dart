@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -6,8 +7,10 @@ import 'package:restaurant_store_flutter/src/core/constants/app_constants.dart';
 import 'package:restaurant_store_flutter/src/core/exceptions/app_exception.dart';
 import 'package:restaurant_store_flutter/src/data/models/cart.dart';
 import 'package:restaurant_store_flutter/src/data/models/order.dart';
+import 'package:restaurant_store_flutter/src/data/models/websocket_message.dart';
 import 'package:restaurant_store_flutter/src/data/services/api_service.dart';
 import 'package:restaurant_store_flutter/src/data/services/order_tracking_service.dart';
+import 'package:restaurant_store_flutter/src/data/services/stomp_tracking_service.dart';
 import 'package:restaurant_store_flutter/src/data/services/storage_service.dart';
 
 class OrderProvider extends ChangeNotifier {
@@ -21,6 +24,10 @@ class OrderProvider extends ChangeNotifier {
   String? _errorMessage;
   OrderStatus? _statusFilter;
   final OrderTrackingService _trackingService = OrderTrackingService();
+  final StompTrackingService _stompTrackingService = StompTrackingService();
+  StreamSubscription<Order>? _orderSubscription;
+  StreamSubscription<DeliveryInfo>? _deliverySubscription;
+  StreamSubscription<OrderStatusMessage>? _notificationSubscription;
   int? _trackedOrderId;
   bool _isTrackingOrder = false;
   String? _trackingError;
@@ -56,6 +63,10 @@ class OrderProvider extends ChangeNotifier {
   @override
   void dispose() {
     _trackingService.close();
+    _orderSubscription?.cancel();
+    _deliverySubscription?.cancel();
+    _notificationSubscription?.cancel();
+    _stompTrackingService.dispose();
     super.dispose();
   }
 
@@ -271,18 +282,61 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
 
     final token = StorageService.getAuthToken();
-    final uri = ApiService.buildOrderTrackingWebSocketUri(orderId, authToken: kIsWeb ? token : null);
-    final headers = !kIsWeb && token != null ? {'Authorization': 'Bearer $token'} : null;
 
     try {
-      _trackingService.connect(
-        uri: uri,
-        headers: headers,
-        onEvent: (event) => _handleTrackingEvent(event, orderId),
-        onError: (error, stackTrace) => _handleTrackingError(error),
-        onDone: _handleTrackingClosed,
+      // Subscribe to streams before connecting
+      _orderSubscription = _stompTrackingService.orderStream.listen(
+        (order) {
+          debugPrint('Received order update via STOMP: ${order.id}');
+          _updateOrderCollection(order);
+          notifyListeners();
+        },
+        onError: (error) {
+          debugPrint('Order stream error: $error');
+        },
+      );
+
+      _deliverySubscription = _stompTrackingService.deliveryStream.listen(
+        (delivery) {
+          debugPrint('Received delivery update via STOMP: ${delivery.id}');
+          _deliveryInfo = delivery;
+          notifyListeners();
+        },
+        onError: (error) {
+          debugPrint('Delivery stream error: $error');
+        },
+      );
+
+      _notificationSubscription = _stompTrackingService.notificationStream.listen(
+        (notification) {
+          debugPrint('Received notification via STOMP: ${notification.title}');
+          // Notifications can be handled separately if needed
+          // For now, we just log them
+        },
+        onError: (error) {
+          debugPrint('Notification stream error: $error');
+        },
+      );
+
+      // Connect and track
+      _stompTrackingService.connectAndTrack(
+        orderId: orderId,
+        authToken: token,
+        onConnected: () {
+          debugPrint('Successfully connected to order tracking');
+          _isTrackingOrder = true;
+          _trackingError = null;
+          notifyListeners();
+        },
+        onError: (error) {
+          debugPrint('Failed to connect to order tracking: $error');
+          _trackingError = 'Unable to connect to live tracking.';
+          _isTrackingOrder = false;
+          notifyListeners();
+        },
       );
     } catch (error) {
+      debugPrint('Error starting order tracking: $error');
       _trackingError = 'Unable to connect to live tracking.';
       _isTrackingOrder = false;
       notifyListeners();
@@ -291,6 +345,10 @@ class OrderProvider extends ChangeNotifier {
 
   void stopOrderTracking({bool notifyListenersOnStop = true}) {
     _trackingService.close();
+    _orderSubscription?.cancel();
+    _deliverySubscription?.cancel();
+    _notificationSubscription?.cancel();
+    _stompTrackingService.disconnect();
     _trackedOrderId = null;
     _isTrackingOrder = false;
     _trackingError = null;
