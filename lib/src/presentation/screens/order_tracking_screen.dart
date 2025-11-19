@@ -20,6 +20,8 @@ class OrderTrackingScreen extends StatefulWidget {
 }
 
 class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
+  OrderProvider? _orderProvider;
+
   @override
   void initState() {
     super.initState();
@@ -29,8 +31,14 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _orderProvider = context.read<OrderProvider>();
+  }
+
+  @override
   void dispose() {
-    context.read<OrderProvider>().stopOrderTracking();
+    _orderProvider?.stopOrderTracking();
     super.dispose();
   }
 

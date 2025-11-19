@@ -364,10 +364,13 @@ class OrderProvider extends ChangeNotifier {
         return;
       }
 
-      final orderData = _extractOrderData(payload) ?? (payload['orderId'] == orderId ? payload : null);
+      final orderData = _extractOrderData(payload);
       if (orderData is Map<String, dynamic>) {
         final updatedOrder = Order.fromJson(orderData);
-        _updateOrderCollection(updatedOrder);
+        // Ignore non-order messages (e.g. subscription confirmations without an id).
+        if (updatedOrder.id != 0) {
+          _updateOrderCollection(updatedOrder);
+        }
       }
 
       final deliveryData = _extractDeliveryData(payload);
