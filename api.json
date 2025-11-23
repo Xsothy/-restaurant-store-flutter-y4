@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "Restaurant Store API",
-    "description": "REST API for Restaurant Store Backend - A comprehensive ordering system for restaurant management\nwith customer authentication, menu browsing, cart management, order processing, payment integration,\nand delivery tracking.\n\n**WebSocket Support:**\nThis API also provides real-time updates via WebSocket (STOMP over SockJS).\n- WebSocket Endpoint: `ws://localhost:8080/ws`\n- Order Tracking: `/topic/orders/{orderId}`\n- Delivery Tracking: `/topic/deliveries/{orderId}`\n- Documentation: GET `/api/websocket/info`\n\nFor detailed WebSocket connection instructions and available topics, see the WebSocket Information endpoint.\n",
+    "description": "REST API for Restaurant Store Backend - A comprehensive ordering system for restaurant management\nwith customer authentication, menu browsing, cart management, order processing, payment integration,\nand delivery tracking.\n\n**WebSocket Support:**\nThis API also provides real-time updates via WebSocket (STOMP over SockJS).\n- WebSocket Endpoint: `ws://localhost:8080/ws`\n- Order Tracking: `/topic/orders/{orderId}`\n- Delivery Tracking: `/topic/deliveries/{orderId}`\n- Documentation: GET `/api/websocket/info` or `/api/ws`\n\nFor detailed WebSocket connection instructions and available topics, see the WebSocket Information endpoint.\n",
     "contact": {
       "name": "Restaurant Store Team",
       "url": "https://restaurant-store.com",
@@ -63,6 +63,10 @@
       "description": "Delivery tracking and management (REST). For real-time updates, use WebSocket at /ws"
     },
     {
+      "name": "WebSocket Documentation",
+      "description": "Provides OpenAPI documentation for WebSocket endpoints"
+    },
+    {
       "name": "Authentication",
       "description": "Authentication and user registration endpoints"
     }
@@ -97,6 +101,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Order cannot be cancelled",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -127,16 +141,6 @@
               }
             }
           },
-          "400": {
-            "description": "Order cannot be cancelled",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -147,8 +151,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -157,8 +161,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -183,240 +187,6 @@
             "bearerAuth": []
           }
         ]
-      }
-    },
-    "/api/deliveries/{deliveryId}/update-status": {
-      "put": {
-        "tags": [
-          "Deliveries"
-        ],
-        "operationId": "updateDeliveryStatus",
-        "parameters": [
-          {
-            "name": "deliveryId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "405": {
-            "description": "Method Not Allowed",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseString"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/deliveries/{deliveryId}/update-location": {
-      "put": {
-        "tags": [
-          "Deliveries"
-        ],
-        "operationId": "updateDeliveryLocation",
-        "parameters": [
-          {
-            "name": "deliveryId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "location",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "405": {
-            "description": "Method Not Allowed",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseString"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/customers/{customerId}": {
@@ -448,6 +218,16 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -478,16 +258,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -498,8 +268,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -508,8 +278,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -575,6 +345,16 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -605,16 +385,6 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid request data",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -625,8 +395,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -635,8 +405,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -690,6 +460,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -720,16 +500,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -740,8 +510,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -750,8 +520,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -778,33 +548,33 @@
         ]
       }
     },
-    "/api/webhooks/stripe": {
+    "/checkout/place-order": {
       "post": {
         "tags": [
-          "stripe-webhook-controller"
+          "checkout-web-controller"
         ],
-        "operationId": "handleStripeWebhook",
-        "parameters": [
-          {
-            "name": "Stripe-Signature",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "operationId": "createOrder",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "type": "string"
+                "$ref": "#/components/schemas/CreateOrderRequest"
               }
             }
           },
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -835,8 +605,8 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
+          "405": {
+            "description": "Method Not Allowed",
             "content": {
               "*/*": {
                 "schema": {
@@ -845,8 +615,8 @@
               }
             }
           },
-          "405": {
-            "description": "Method Not Allowed",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -865,8 +635,108 @@
               }
             }
           },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOrderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhooks/stripe": {
+      "post": {
+        "tags": [
+          "stripe-webhook-controller"
+        ],
+        "operationId": "handleStripeWebhook",
+        "parameters": [
+          {
+            "name": "Stripe-Signature",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method Not Allowed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "409": {
             "description": "Conflict",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -917,6 +787,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -947,16 +827,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -967,8 +837,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -977,8 +847,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1015,7 +885,7 @@
         ],
         "summary": "Create order",
         "description": "Creates a new order from the current user's cart items",
-        "operationId": "createOrder",
+        "operationId": "createOrder_1",
         "parameters": [
           {
             "name": "Authorization",
@@ -1037,6 +907,16 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "Invalid order data or empty cart",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -1067,16 +947,6 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid order data or empty cart",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -1087,8 +957,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -1097,8 +967,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1154,6 +1024,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -1184,16 +1064,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -1204,8 +1074,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -1214,8 +1084,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1281,6 +1151,16 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "Invalid payment data",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -1311,16 +1191,6 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid payment data",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -1331,8 +1201,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -1341,8 +1211,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1398,6 +1268,16 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -1428,16 +1308,6 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid request data",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -1448,8 +1318,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -1458,8 +1328,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1505,6 +1375,16 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "Invalid input data",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -1535,16 +1415,6 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid input data",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -1555,8 +1425,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Email already exists",
             "content": {
               "*/*": {
                 "schema": {
@@ -1565,8 +1435,8 @@
               }
             }
           },
-          "409": {
-            "description": "Email already exists",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1607,6 +1477,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -1637,16 +1517,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -1657,8 +1527,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -1667,8 +1537,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1714,6 +1584,16 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Invalid credentials",
             "content": {
@@ -1744,16 +1624,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -1764,8 +1634,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -1774,8 +1644,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1797,15 +1667,25 @@
         }
       }
     },
-    "/api/websocket/info": {
+    "/api/ws": {
       "get": {
         "tags": [
-          "WebSocket Information"
+          "WebSocket Documentation"
         ],
-        "summary": "Get WebSocket Connection Information",
-        "description": "Returns information about how to connect to WebSocket endpoints for real-time updates.\n\nThe application uses STOMP over WebSocket with SockJS fallback.\n\n**Connection Steps:**\n1. Create SockJS connection to `/ws` endpoint\n2. Create STOMP client over the SockJS connection\n3. Connect to STOMP broker\n4. Subscribe to relevant topics\n5. Optionally send subscription messages to receive confirmation\n\n**Available Topics:**\n- Order Status: `/topic/orders/{orderId}`, `/topic/orders/{orderId}/status`, `/topic/orders/{orderId}/notifications`\n- Delivery Tracking: `/topic/deliveries/{orderId}`, `/topic/deliveries/{orderId}/status`, `/topic/deliveries/{orderId}/location`, `/topic/deliveries/{orderId}/notifications`\n",
-        "operationId": "getWebSocketInfo",
+        "summary": "Get WebSocket Documentation",
+        "description": "Returns WebSocket connection details so that /api/ws exists in the OpenAPI document.",
+        "operationId": "getWebSocketDocumentation",
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -1836,8 +1716,8 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
+          "405": {
+            "description": "Method Not Allowed",
             "content": {
               "*/*": {
                 "schema": {
@@ -1846,8 +1726,8 @@
               }
             }
           },
-          "405": {
-            "description": "Method Not Allowed",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -1866,8 +1746,118 @@
               }
             }
           },
+          "200": {
+            "description": "WebSocket documentation retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebSocketInfoResponse"
+                },
+                "examples": {
+                  "WebSocket Documentation": {
+                    "description": "WebSocket Documentation",
+                    "value": {
+                      "success": true,
+                      "message": "WebSocket documentation",
+                      "data": {
+                        "endpoint": "ws://localhost:8080/ws",
+                        "protocol": "STOMP over SockJS",
+                        "topics": [
+                          {
+                            "topic": "/topic/orders/{orderId}",
+                            "description": "Real-time order status updates",
+                            "subscribeEndpoint": "/app/api/orders/{orderId}/subscribe",
+                            "messageTypes": [
+                              "OrderResponse",
+                              "OrderStatusMessage"
+                            ]
+                          }
+                        ],
+                        "exampleCode": {
+                          "javascript": "const socket = new SockJS('http://localhost:8080/ws');",
+                          "html": "\u003Cscript src=\"https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js\"\u003E\u003C/script\u003E"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/websocket/info": {
+      "get": {
+        "tags": [
+          "WebSocket Information"
+        ],
+        "summary": "Get WebSocket Connection Information",
+        "description": "Returns information about how to connect to WebSocket endpoints for real-time updates.\n\nThe application uses STOMP over WebSocket with SockJS fallback.\n\n**Connection Steps:**\n1. Create SockJS connection to `/ws` endpoint\n2. Create STOMP client over the SockJS connection\n3. Connect to STOMP broker\n4. Subscribe to relevant topics\n5. Optionally send subscription messages to receive confirmation\n\n**Available Topics:**\n- Order Status: `/topic/orders/{orderId}`, `/topic/orders/{orderId}/status`, `/topic/orders/{orderId}/notifications`\n- Delivery Tracking: `/topic/deliveries/{orderId}`, `/topic/deliveries/{orderId}/status`, `/topic/deliveries/{orderId}/location`, `/topic/deliveries/{orderId}/notifications`\n",
+        "operationId": "getWebSocketInfo",
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method Not Allowed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "409": {
             "description": "Conflict",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1896,7 +1886,7 @@
                           {
                             "topic": "/topic/orders/{orderId}",
                             "description": "Order status updates",
-                            "subscribeEndpoint": "/app/orders/{orderId}/subscribe",
+                            "subscribeEndpoint": "/app/api/orders/{orderId}/subscribe",
                             "messageTypes": [
                               "OrderResponse",
                               "OrderStatusMessage"
@@ -1905,7 +1895,7 @@
                           {
                             "topic": "/topic/deliveries/{orderId}",
                             "description": "Delivery tracking updates",
-                            "subscribeEndpoint": "/app/deliveries/{orderId}/subscribe",
+                            "subscribeEndpoint": "/app/api/deliveries/{orderId}/subscribe",
                             "messageTypes": [
                               "DeliveryResponse",
                               "OrderStatusMessage"
@@ -1955,6 +1945,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -1985,16 +1985,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -2005,8 +1995,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -2015,8 +2005,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -2059,6 +2049,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -2089,16 +2089,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -2109,8 +2099,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -2119,8 +2109,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -2170,6 +2160,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Order is not a pickup order",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -2200,16 +2200,6 @@
               }
             }
           },
-          "400": {
-            "description": "Order is not a pickup order",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -2220,8 +2210,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -2230,8 +2220,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -2287,6 +2277,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -2317,16 +2317,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -2337,8 +2327,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -2347,8 +2337,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -2404,6 +2394,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -2434,16 +2434,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -2454,8 +2444,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -2464,8 +2454,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -2511,6 +2501,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -2541,16 +2541,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -2561,8 +2551,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -2571,8 +2561,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -2628,6 +2618,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -2658,16 +2658,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -2678,8 +2668,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -2688,8 +2678,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -2742,6 +2732,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -2772,16 +2772,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -2792,8 +2782,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -2802,8 +2792,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -2853,6 +2843,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -2883,16 +2883,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -2903,8 +2893,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -2913,8 +2903,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -2945,6 +2935,16 @@
         "description": "Retrieves all product categories available in the menu",
         "operationId": "getAllCategories",
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -2975,16 +2975,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -2995,8 +2985,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -3005,8 +2995,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -3052,6 +3042,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -3082,16 +3082,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -3102,8 +3092,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -3112,8 +3102,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -3154,6 +3144,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized - Invalid or missing JWT token",
             "content": {
@@ -3184,16 +3184,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -3204,8 +3194,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -3214,8 +3204,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -3261,6 +3251,16 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -3291,16 +3291,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "405": {
             "description": "Method Not Allowed",
             "content": {
@@ -3311,8 +3301,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "409": {
+            "description": "Conflict",
             "content": {
               "*/*": {
                 "schema": {
@@ -3321,8 +3311,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -3697,9 +3687,10 @@
               "PENDING",
               "CONFIRMED",
               "PREPARING",
-              "READY",
+              "READY_FOR_PICKUP",
+              "READY_FOR_DELIVERY",
               "OUT_FOR_DELIVERY",
-              "DELIVERED",
+              "COMPLETED",
               "CANCELLED"
             ]
           },
@@ -3994,7 +3985,7 @@
         },
         "description": "Login request payload"
       },
-      "WebSocketInfo": {
+      "WebSocketDocumentation": {
         "type": "object",
         "properties": {
           "endpoint": {
@@ -4011,7 +4002,7 @@
             "type": "array",
             "description": "Available WebSocket topics",
             "items": {
-              "$ref": "#/components/schemas/WebSocketTopicInfo"
+              "$ref": "#/components/schemas/WebSocketTopic"
             }
           },
           "exampleCode": {
@@ -4037,12 +4028,12 @@
             "description": "Response message"
           },
           "data": {
-            "$ref": "#/components/schemas/WebSocketInfo"
+            "$ref": "#/components/schemas/WebSocketDocumentation"
           }
         },
         "description": "Wrapper for WebSocket info response"
       },
-      "WebSocketTopicInfo": {
+      "WebSocketTopic": {
         "type": "object",
         "properties": {
           "topic": {
@@ -4058,7 +4049,7 @@
           "subscribeEndpoint": {
             "type": "string",
             "description": "Endpoint to send subscription message (if applicable)",
-            "example": "/app/deliveries/{orderId}/subscribe"
+            "example": "/app/api/deliveries/{orderId}/subscribe"
           },
           "messageTypes": {
             "type": "array",
@@ -4310,6 +4301,14 @@
           },
           "currentLocation": {
             "type": "string"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
           },
           "createdAt": {
             "type": "string",
