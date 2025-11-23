@@ -9,6 +9,7 @@ import 'package:restaurant_store_flutter/src/features/orders/providers/order_pro
 import 'package:restaurant_store_flutter/src/presentation/widgets/cached_app_image.dart';
 import 'package:restaurant_store_flutter/src/presentation/widgets/cart_icon_button.dart';
 import 'package:restaurant_store_flutter/src/presentation/widgets/custom_button.dart';
+import 'package:restaurant_store_flutter/src/presentation/widgets/driver_location_tracker.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
   final String orderId;
@@ -98,6 +99,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 const SizedBox(height: 24),
                 if (delivery != null || order.deliveryDriverName != null)
                   _buildDriverCard(order, delivery),
+                if (delivery != null && delivery.latitude != null && delivery.longitude != null) ...[
+                  const SizedBox(height: 16),
+                  DriverLocationTracker(delivery: delivery),
+                ],
                 if (delivery != null || order.deliveryAddress != null) ...[
                   const SizedBox(height: 16),
                   _buildDeliveryCard(order, delivery),
@@ -459,21 +464,20 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
               ),
             ],
           ),
-          if (delivery?.currentLocation != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              'Current location: ${delivery!.currentLocation}',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
           if (delivery?.estimatedArrivalTime != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              'ETA: ${_formatDateTime(delivery!.estimatedArrivalTime)}',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(Icons.access_time, size: 16, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 6),
+                Text(
+                  'ETA: ${_formatDateTime(delivery!.estimatedArrivalTime)}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600),
+                ),
+              ],
             ),
           ],
         ],

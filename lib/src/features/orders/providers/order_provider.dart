@@ -230,6 +230,33 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> updateDriverLocation({
+    required int deliveryId,
+    required double latitude,
+    required double longitude,
+    String? currentLocation,
+  }) async {
+    try {
+      final updatedDelivery = await ApiService.updateDriverLocation(
+        deliveryId: deliveryId,
+        latitude: latitude,
+        longitude: longitude,
+        currentLocation: currentLocation,
+      );
+      _deliveryInfo = updatedDelivery;
+      notifyListeners();
+      return true;
+    } on AppException catch (e) {
+      _errorMessage = e.message;
+      return false;
+    } catch (e, stackTrace) {
+      debugPrint('Failed to update driver location: $e');
+      FlutterError.reportError(FlutterErrorDetails(exception: e, stack: stackTrace));
+      _errorMessage = AppConstants.generalError;
+      return false;
+    }
+  }
+
   Future<bool> updateDeliveryStatus(int deliveryId, String status) async {
     try {
       await ApiService.updateDeliveryStatus(deliveryId, status);

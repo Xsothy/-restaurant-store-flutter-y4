@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "Restaurant Store API",
-    "description": "REST API for Restaurant Store Backend - A comprehensive ordering system for restaurant management\nwith customer authentication, menu browsing, cart management, order processing, payment integration,\nand delivery tracking.\n\n**WebSocket Support:**\nThis API also provides real-time updates via WebSocket (STOMP over SockJS).\n- WebSocket Endpoint: `ws://localhost:8080/ws`\n- Order Tracking: `/topic/orders/{orderId}`\n- Delivery Tracking: `/topic/deliveries/{orderId}`\n- Documentation: GET `/api/websocket/info` or `/api/ws`\n\nFor detailed WebSocket connection instructions and available topics, see the WebSocket Information endpoint.\n",
+    "description": "REST API for Restaurant Store Backend - A comprehensive ordering system for restaurant management\nwith customer authentication, menu browsing, cart management, order processing, payment integration,\nand delivery tracking with real-time driver location updates.\n\n**WebSocket Support:**\nThis API also provides real-time updates via WebSocket (STOMP over SockJS).\n- WebSocket Endpoint: `ws://localhost:8080/ws`\n- Order Tracking: `/topic/orders/{orderId}`\n- Delivery Tracking: `/topic/deliveries/{orderId}`\n- Driver Location: Live GPS coordinates broadcast on delivery updates\n- Documentation: GET `/api/websocket/info` or `/api/ws`\n\n**Driver Location Tracking:**\nDrivers can update their location via PUT `/api/deliveries/{deliveryId}/driver-location` with latitude/longitude coordinates.\nLocation updates are automatically broadcast to subscribed clients in real-time, enabling live driver tracking on maps.\n\nFor detailed WebSocket connection instructions and available topics, see the WebSocket Information endpoint.\n",
     "contact": {
       "name": "Restaurant Store Team",
       "url": "https://restaurant-store.com",
@@ -1793,7 +1793,7 @@
           "WebSocket Information"
         ],
         "summary": "Get WebSocket Connection Information",
-        "description": "Returns information about how to connect to WebSocket endpoints for real-time updates.\n\nThe application uses STOMP over WebSocket with SockJS fallback.\n\n**Connection Steps:**\n1. Create SockJS connection to `/ws` endpoint\n2. Create STOMP client over the SockJS connection\n3. Connect to STOMP broker\n4. Subscribe to relevant topics\n5. Optionally send subscription messages to receive confirmation\n\n**Available Topics:**\n- Order Status: `/topic/orders/{orderId}`, `/topic/orders/{orderId}/status`, `/topic/orders/{orderId}/notifications`\n- Delivery Tracking: `/topic/deliveries/{orderId}`, `/topic/deliveries/{orderId}/status`, `/topic/deliveries/{orderId}/location`, `/topic/deliveries/{orderId}/notifications`\n",
+        "description": "Returns information about how to connect to WebSocket endpoints for real-time updates.\n\nThe application uses STOMP over WebSocket with SockJS fallback.\n\n**Connection Steps:**\n1. Create SockJS connection to `/ws` endpoint\n2. Create STOMP client over the SockJS connection\n3. Connect to STOMP broker\n4. Subscribe to relevant topics\n5. Optionally send subscription messages to receive confirmation\n\n**Available Topics:**\n- Order Status: `/topic/orders/{orderId}`, `/topic/orders/{orderId}/status`, `/topic/orders/{orderId}/notifications`\n- Delivery Tracking: `/topic/deliveries/{orderId}`, `/topic/deliveries/{orderId}/status`, `/topic/deliveries/{orderId}/location`, `/topic/deliveries/{orderId}/notifications`\n\n**Driver Location Updates:**\nWhen drivers update their location via the PUT `/api/deliveries/{deliveryId}/driver-location` endpoint, the updated delivery information (including latitude, longitude, and currentLocation) is automatically broadcast to all subscribers of the delivery topics. This enables real-time driver tracking on client applications.\n",
         "operationId": "getWebSocketInfo",
         "responses": {
           "400": {
@@ -2924,6 +2924,133 @@
             }
           }
         }
+      }
+    },
+    "/api/deliveries/{deliveryId}/driver-location": {
+      "put": {
+        "tags": [
+          "Deliveries"
+        ],
+        "summary": "Update driver location",
+        "description": "Updates the driver's current location with latitude and longitude coordinates.\nThis endpoint is typically used by delivery drivers to update their real-time location.\n\n**Real-time Updates:**\nLocation updates are automatically broadcast via WebSocket to:\n- `/topic/deliveries/{orderId}`\n- `/topic/deliveries/{orderId}/location`\n\nClients subscribed to these topics will receive real-time location updates.",
+        "operationId": "updateDriverLocation",
+        "parameters": [
+          {
+            "name": "deliveryId",
+            "in": "path",
+            "description": "Delivery ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DriverLocationUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid location data",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Delivery not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method Not Allowed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Location updated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDeliveryResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/categories": {
@@ -4354,6 +4481,32 @@
           "timestamp": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "DriverLocationUpdateRequest": {
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "description": "Driver's current latitude coordinate",
+            "example": 11.5564
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "description": "Driver's current longitude coordinate",
+            "example": 104.9282
+          },
+          "currentLocation": {
+            "type": "string",
+            "description": "Optional human-readable description of current location",
+            "example": "Near Central Market, Phnom Penh"
           }
         }
       }
