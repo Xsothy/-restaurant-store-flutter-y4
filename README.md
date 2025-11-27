@@ -38,7 +38,7 @@ A modern Flutter mobile application for restaurant ordering with Material Design
 - ✅ **Validation**: Cart validation for checkout requirements
 
 #### **Location & Maps**
-- ✅ **Location Picker**: Interactive Google Maps for delivery address selection
+- ✅ **Location Picker**: Interactive Leaflet/OpenStreetMap for delivery address selection
 - ✅ **GPS Integration**: Current location detection with geolocator
 - ✅ **Address Geocoding**: Automatic address conversion from coordinates
 - ✅ **Draggable Markers**: Precise location selection with map interaction
@@ -174,14 +174,11 @@ flutter pub get
 # Setup environment (copy and configure .env)
 cp .env.example .env
 
-# Configure Google Maps API key (required for location picker)
-# See GOOGLE_MAPS_SETUP.md for detailed instructions
-
 # Run the app
 flutter run
 ```
 
-**Note:** Google Maps API key setup is required for the location picker feature. See `GOOGLE_MAPS_SETUP.md` for detailed setup instructions.
+**Note:** The app uses Leaflet with OpenStreetMap tiles for maps, which doesn't require API keys. See `LEAFLET_MAPS_SETUP.md` for more information.
 
 ### **Development Setup**
 ```bash
@@ -292,12 +289,13 @@ The app connects to a Spring Boot backend with the following endpoints:
 - Favorites and recently viewed items
 
 ### **📍 Location Services**
-- Interactive Google Maps for delivery address selection
+- Interactive Leaflet/OpenStreetMap for delivery address selection
 - GPS-based current location detection
 - Automatic address geocoding (coordinates to readable address)
 - Draggable markers for precise location selection
 - Visual map interface with smooth animations
 - GPS coordinates storage for accurate delivery
+- No API keys required for map functionality
 
 ### **📦 Order Management**
 - Complete order lifecycle from placement to delivery
@@ -313,7 +311,7 @@ The app connects to a Spring Boot backend with the following endpoints:
 - Delivery destination display (from checkout address)
 - Route visualization from driver to delivery destination
 - Estimated delivery time calculations
-- "View Route on Map" functionality with Google Maps directions
+- "View Route on Map" functionality with OpenStreetMap directions
 
 ### **🎨 Modern UI/UX**
 - Material Design 3 with dynamic theming
