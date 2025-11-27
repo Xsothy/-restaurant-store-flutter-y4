@@ -37,6 +37,13 @@ A modern Flutter mobile application for restaurant ordering with Material Design
 - ✅ **Cart UI**: Modern cart screen with item management
 - ✅ **Validation**: Cart validation for checkout requirements
 
+#### **Location & Maps**
+- ✅ **Location Picker**: Interactive Google Maps for delivery address selection
+- ✅ **GPS Integration**: Current location detection with geolocator
+- ✅ **Address Geocoding**: Automatic address conversion from coordinates
+- ✅ **Draggable Markers**: Precise location selection with map interaction
+- ✅ **Checkout Integration**: Seamless map-based location selection in checkout flow
+
 #### **Order Management**
 - ✅ **Order Provider**: Complete order lifecycle management
 - ✅ **Order Creation**: Full checkout flow with address and payment
@@ -101,7 +108,8 @@ A modern Flutter mobile application for restaurant ordering with Material Design
 | Menu Screen | ✅ Complete | Product grid, filters, search |
 | Product Detail | ✅ Complete | Product info, reviews, add to cart |
 | Cart Screen | ✅ Complete | Item management, price calculations |
-| Checkout Screen | ✅ Complete | Address, payment, order placement |
+| Checkout Screen | ✅ Complete | Address, payment, location picker, order placement |
+| Location Picker | ✅ Complete | Interactive map, GPS, address geocoding |
 | Order Tracking | ✅ Complete | Real-time status, timeline view |
 | Profile Screen | ✅ Complete | User info, settings, preferences |
 | Order History | ✅ Complete | Past orders, filtering, details |
@@ -163,12 +171,17 @@ cd restaurant-store-flutter
 # Install dependencies
 flutter pub get
 
-# Generate code (for JSON serialization)
-flutter packages pub run build_runner build --delete-conflicting-outputs
+# Setup environment (copy and configure .env)
+cp .env.example .env
+
+# Configure Google Maps API key (required for location picker)
+# See GOOGLE_MAPS_SETUP.md for detailed instructions
 
 # Run the app
 flutter run
 ```
+
+**Note:** Google Maps API key setup is required for the location picker feature. See `GOOGLE_MAPS_SETUP.md` for detailed setup instructions.
 
 ### **Development Setup**
 ```bash
@@ -221,6 +234,7 @@ lib/
 │   ├── custom_button.dart
 │   ├── custom_text_field.dart
 │   ├── driver_location_tracker.dart
+│   ├── location_picker.dart
 │   └── ...
 ├── utils/            # Utility functions and helpers
 │   └── routes.dart
@@ -276,6 +290,14 @@ The app connects to a Spring Boot backend with the following endpoints:
 - Product customization and special instructions
 - Smart cart with price calculations and validation
 - Favorites and recently viewed items
+
+### **📍 Location Services**
+- Interactive Google Maps for delivery address selection
+- GPS-based current location detection
+- Automatic address geocoding (coordinates to readable address)
+- Draggable markers for precise location selection
+- Visual map interface with smooth animations
+- GPS coordinates storage for accurate delivery
 
 ### **📦 Order Management**
 - Complete order lifecycle from placement to delivery
