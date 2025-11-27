@@ -12,7 +12,9 @@ The driver location tracking feature enables delivery drivers to share their rea
 - **WebSocket Broadcasting**: Location updates are automatically broadcast to subscribed clients
 - **Latitude/Longitude Coordinates**: GPS coordinates are stored and transmitted in standard format
 - **Live Tracking Widget**: Dedicated UI component for displaying driver location information
-- **Map Integration**: Quick link to view driver location on Google Maps
+- **Delivery Destination Display**: Shows the customer's delivery address from checkout
+- **Route Mapping**: View route from driver's current location to delivery destination
+- **Map Integration**: Quick link to view driver location or full route on Google Maps
 
 ## API Endpoints
 
@@ -142,14 +144,16 @@ import 'package:restaurant_store_flutter/src/presentation/widgets/driver_locatio
 
 DriverLocationTracker(
   delivery: deliveryInfo,
+  deliveryAddress: order.deliveryAddress, // Optional: shows destination
 )
 ```
 
 Features:
 - Live status indicator
-- Current location display
-- GPS coordinates
-- "View on Map" button
+- Current location display (from driver)
+- GPS coordinates (precise lat/lng)
+- Delivery destination address (from checkout)
+- Smart "View Route on Map" button (shows directions when destination available)
 
 #### Order Tracking Screen
 
@@ -157,9 +161,19 @@ The order tracking screen automatically displays driver location when available:
 
 ```dart
 if (delivery != null && delivery.latitude != null && delivery.longitude != null) {
-  DriverLocationTracker(delivery: delivery),
+  DriverLocationTracker(
+    delivery: delivery,
+    deliveryAddress: order.deliveryAddress, // Passed from checkout
+  ),
 }
 ```
+
+**Integration with Checkout Flow:**
+- When customers place an order, they provide a delivery address
+- This address is stored in `Order.deliveryAddress`
+- The driver location widget displays both driver location AND destination
+- The "View Route on Map" button shows directions from driver to destination
+- Customers can see how far the driver is from their location
 
 ## Usage Example
 

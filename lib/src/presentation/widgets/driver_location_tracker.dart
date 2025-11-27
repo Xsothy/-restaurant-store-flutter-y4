@@ -3,10 +3,12 @@ import 'package:restaurant_store_flutter/src/data/models/order.dart';
 
 class DriverLocationTracker extends StatelessWidget {
   final DeliveryInfo delivery;
+  final String? deliveryAddress;
 
   const DriverLocationTracker({
     super.key,
     required this.delivery,
+    this.deliveryAddress,
   });
 
   @override
@@ -95,6 +97,20 @@ class DriverLocationTracker extends StatelessWidget {
                 '${delivery.latitude!.toStringAsFixed(6)}, ${delivery.longitude!.toStringAsFixed(6)}',
             isSecondary: true,
           ),
+          if (deliveryAddress != null) ...[
+            const SizedBox(height: 12),
+            Divider(
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              height: 1,
+            ),
+            const SizedBox(height: 12),
+            _buildLocationRow(
+              context,
+              icon: Icons.flag,
+              label: 'Delivery Destination',
+              value: deliveryAddress!,
+            ),
+          ],
           const SizedBox(height: 12),
           _buildMapButton(context),
         ],
@@ -145,14 +161,16 @@ class DriverLocationTracker extends StatelessWidget {
   }
 
   Widget _buildMapButton(BuildContext context) {
+    final bool hasDestination = deliveryAddress != null && deliveryAddress!.isNotEmpty;
+    
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: () {
           _openInMaps(context);
         },
-        icon: const Icon(Icons.map, size: 18),
-        label: const Text('View on Map'),
+        icon: Icon(hasDestination ? Icons.directions : Icons.map, size: 18),
+        label: Text(hasDestination ? 'View Route on Map' : 'View on Map'),
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 12),
           side: BorderSide(
@@ -168,11 +186,25 @@ class DriverLocationTracker extends StatelessWidget {
     final lng = delivery.longitude;
     if (lat == null || lng == null) return;
 
-    final url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+    // If we have a delivery address, show it as the destination with driver as origin
+    // Otherwise just show driver's current location
+    final String url;
+    final String message;
+    
+    if (deliveryAddress != null && deliveryAddress!.isNotEmpty) {
+      // Google Maps directions: from driver location to delivery address
+      final encodedAddress = Uri.encodeComponent(deliveryAddress!);
+      url = 'https://www.google.com/maps/dir/?api=1&origin=$lat,$lng&destination=$encodedAddress';
+      message = 'View route from driver to delivery address';
+    } else {
+      // Just show driver location
+      url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+      message = 'View driver location on map';
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Open in browser: $url'),
+        content: Text('$message\n$url'),
         action: SnackBarAction(
           label: 'OK',
           onPressed: () {},

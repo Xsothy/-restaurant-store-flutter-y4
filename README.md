@@ -288,8 +288,10 @@ The app connects to a Spring Boot backend with the following endpoints:
 - Real-time driver GPS location tracking (latitude/longitude)
 - Driver information and contact options
 - Interactive location tracker widget with map integration
+- Delivery destination display (from checkout address)
+- Route visualization from driver to delivery destination
 - Estimated delivery time calculations
-- "View on Map" functionality for driver location
+- "View Route on Map" functionality with Google Maps directions
 
 ### **🎨 Modern UI/UX**
 - Material Design 3 with dynamic theming

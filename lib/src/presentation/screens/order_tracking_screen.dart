@@ -101,7 +101,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                   _buildDriverCard(order, delivery),
                 if (delivery != null && delivery.latitude != null && delivery.longitude != null) ...[
                   const SizedBox(height: 16),
-                  DriverLocationTracker(delivery: delivery),
+                  DriverLocationTracker(
+                    delivery: delivery,
+                    deliveryAddress: order.deliveryAddress,
+                  ),
                 ],
                 if (delivery != null || order.deliveryAddress != null) ...[
                   const SizedBox(height: 16),

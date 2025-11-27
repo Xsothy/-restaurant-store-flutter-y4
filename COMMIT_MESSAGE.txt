@@ -40,7 +40,8 @@ latitude/longitude coordinates and comprehensive API documentation.
   - Live status indicator
   - GPS coordinates display
   - Current location text
-  - "View on Map" button
+  - Delivery destination address display (from checkout)
+  - Smart "View Route on Map" button with Google Maps directions
   - Material Design 3 styling
 
 ## State Management

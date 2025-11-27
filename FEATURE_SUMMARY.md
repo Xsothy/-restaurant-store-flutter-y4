@@ -52,9 +52,14 @@ All requested features have been successfully implemented and documented.
 #### A. DriverLocationTracker Widget (New)
 - Dedicated widget for displaying live driver location
 - Shows "LIVE" indicator with pulsing animation
-- Displays current location text
+- Displays current location text (from driver updates)
 - Shows GPS coordinates (formatted to 6 decimals)
-- "View on Map" button with Google Maps integration
+- **Displays delivery destination address** (from checkout)
+- Visual separator between driver location and destination
+- **Smart "View Route on Map" button**:
+  - Shows directions when delivery address available
+  - Falls back to location view without address
+  - Uses Google Maps Directions API
 - Material Design 3 styling with primary colors
 - Only renders when GPS coordinates are available
 
@@ -62,6 +67,7 @@ All requested features have been successfully implemented and documented.
 
 #### B. Order Tracking Screen Updates
 - Integrated `DriverLocationTracker` widget
+- **Passes delivery address from order to widget**
 - Conditionally displays when coordinates available
 - Simplified driver card (removed duplicate location info)
 - Improved visual hierarchy and spacing
@@ -186,20 +192,30 @@ final success = await orderProvider.updateDriverLocation(
   currentLocation: 'Near Central Market',
 );
 
-// Display in UI
+// Display in UI with delivery address
 if (delivery.latitude != null && delivery.longitude != null) {
-  DriverLocationTracker(delivery: delivery);
+  DriverLocationTracker(
+    delivery: delivery,
+    deliveryAddress: order.deliveryAddress, // From checkout
+  );
 }
 ```
 
 ## 📱 User Experience
 
-### Customer View
+### Checkout Flow Integration
+1. **Customer places order** and enters delivery address
+2. Address is stored in `Order.deliveryAddress`
+3. Address becomes the destination for driver tracking
+
+### Customer View (Tracking)
 1. Opens order tracking screen
 2. Sees "Live Location Tracking" card when driver has GPS enabled
-3. Views current location text and GPS coordinates
-4. Taps "View on Map" to see location in Google Maps
-5. Receives real-time updates via WebSocket
+3. Views driver's current location text and GPS coordinates
+4. **Sees their delivery destination address** (from checkout)
+5. Taps "View Route on Map" to see **directions from driver to destination**
+6. Receives real-time location updates via WebSocket
+7. Can visualize how far driver is from their location
 
 ### Driver View (Future Driver App)
 1. App requests location permissions
