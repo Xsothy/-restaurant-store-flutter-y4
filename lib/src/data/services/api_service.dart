@@ -321,6 +321,27 @@ class ApiService {
     }
   }
 
+  static Future<DeliveryInfo> updateDriverLocation({
+    required int deliveryId,
+    required double latitude,
+    required double longitude,
+    String? currentLocation,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/deliveries/$deliveryId/driver-location',
+        data: {
+          'latitude': latitude,
+          'longitude': longitude,
+          if (currentLocation != null) 'currentLocation': currentLocation,
+        },
+      );
+      return DeliveryInfo.fromJson(_asMap(response.data));
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // Payment APIs
   static Future<String> createPaymentIntent(int orderId) async {
     try {

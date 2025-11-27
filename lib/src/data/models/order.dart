@@ -238,6 +238,8 @@ class DeliveryInfo {
   final DateTime? actualDeliveryTime;
   final String? deliveryNotes;
   final String? currentLocation;
+  final double? latitude;
+  final double? longitude;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -253,6 +255,8 @@ class DeliveryInfo {
     this.actualDeliveryTime,
     this.deliveryNotes,
     this.currentLocation,
+    this.latitude,
+    this.longitude,
     this.createdAt,
     this.updatedAt,
   });
@@ -272,6 +276,12 @@ class DeliveryInfo {
       actualDeliveryTime: Order._parseDate(json['actualDeliveryTime']),
       deliveryNotes: json['deliveryNotes']?.toString(),
       currentLocation: json['currentLocation']?.toString(),
+      latitude: json['latitude'] is num
+          ? (json['latitude'] as num).toDouble()
+          : double.tryParse('${json['latitude']}'),
+      longitude: json['longitude'] is num
+          ? (json['longitude'] as num).toDouble()
+          : double.tryParse('${json['longitude']}'),
       createdAt: Order._parseDate(json['createdAt']),
       updatedAt: Order._parseDate(json['updatedAt']),
     );
@@ -290,6 +300,8 @@ class DeliveryInfo {
       'actualDeliveryTime': actualDeliveryTime?.toIso8601String(),
       'deliveryNotes': deliveryNotes,
       'currentLocation': currentLocation,
+      'latitude': latitude,
+      'longitude': longitude,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     }..removeWhere((key, value) => value == null);

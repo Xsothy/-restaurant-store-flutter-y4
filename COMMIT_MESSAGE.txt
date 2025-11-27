@@ -1,0 +1,94 @@
+feat: Add drop-in location and driver tracking with GPS coordinates
+
+Implement real-time driver location tracking for delivery orders with
+latitude/longitude coordinates and comprehensive API documentation.
+
+## Features Added
+
+- Drop-in location support (latitude/longitude) in DeliveryInfo model
+- New REST API endpoint: PUT /api/deliveries/{deliveryId}/driver-location
+- DriverLocationTracker widget for live location display
+- Real-time WebSocket location updates integration
+- Complete OpenAPI specification in api.json
+- Comprehensive documentation and quick start guides
+
+## API Changes
+
+### New Endpoint
+- PUT /api/deliveries/{deliveryId}/driver-location
+  - Request: latitude, longitude, currentLocation
+  - Response: Updated DeliveryResponse with GPS coordinates
+  - Auth: Bearer token required
+  - WebSocket: Broadcasts to delivery topics
+
+### New Schema
+- DriverLocationUpdateRequest
+  - latitude: double (required, -90 to 90)
+  - longitude: double (required, -180 to 180)
+  - currentLocation: string (optional)
+
+## Data Model Updates
+
+- DeliveryInfo model enhanced with:
+  - latitude: double? (GPS coordinate)
+  - longitude: double? (GPS coordinate)
+  - Backward compatible (nullable fields)
+
+## UI Components
+
+- DriverLocationTracker widget
+  - Live status indicator
+  - GPS coordinates display
+  - Current location text
+  - Delivery destination address display (from checkout)
+  - Smart "View Route on Map" button with Google Maps directions
+  - Material Design 3 styling
+
+## State Management
+
+- OrderProvider.updateDriverLocation() method
+- Automatic state updates via notifyListeners()
+- Error handling with AppException
+- WebSocket integration preserved
+
+## Documentation
+
+Created comprehensive documentation:
+- DRIVER_LOCATION_TRACKING.md - Full feature guide
+- QUICK_START_DRIVER_TRACKING.md - Quick start guide
+- IMPLEMENTATION_SUMMARY.md - Implementation details
+- FEATURE_SUMMARY.md - Feature overview
+- IMPLEMENTATION_CHECKLIST.md - Verification checklist
+
+## Files Changed
+
+### Modified (6)
+- lib/src/data/models/order.dart
+- lib/src/data/services/api_service.dart
+- lib/src/features/orders/providers/order_provider.dart
+- lib/src/presentation/screens/order_tracking_screen.dart
+- api.json
+- README.md
+
+### Created (6)
+- lib/src/presentation/widgets/driver_location_tracker.dart
+- docs/DRIVER_LOCATION_TRACKING.md
+- docs/QUICK_START_DRIVER_TRACKING.md
+- IMPLEMENTATION_SUMMARY.md
+- FEATURE_SUMMARY.md
+- IMPLEMENTATION_CHECKLIST.md
+
+## Testing
+
+- JSON validation passed
+- No Dart syntax errors
+- Backward compatible
+- All documentation complete
+
+## Next Steps
+
+- Backend: Implement PUT endpoint
+- Testing: Integration tests with real GPS
+- Enhancement: Add full map view (Google Maps/Mapbox)
+
+Closes: #[ticket-number]

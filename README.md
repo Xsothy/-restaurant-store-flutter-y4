@@ -42,7 +42,9 @@ A modern Flutter mobile application for restaurant ordering with Material Design
 - ✅ **Order Creation**: Full checkout flow with address and payment
 - ✅ **Order Tracking**: Real-time status updates and timeline
 - ✅ **Order History**: Complete order history with filtering
-- ✅ **Delivery Tracking**: Live delivery status integration ready
+- ✅ **Delivery Tracking**: Live delivery status with driver location tracking
+- ✅ **Driver Location**: Real-time GPS tracking with latitude/longitude updates
+- ✅ **WebSocket Updates**: Live location broadcasts to subscribed clients
 
 #### **User Interface**
 - ✅ **Modern UI**: Material Design 3 with custom theming
@@ -218,6 +220,7 @@ lib/
 ├── widgets/          # Reusable UI components
 │   ├── custom_button.dart
 │   ├── custom_text_field.dart
+│   ├── driver_location_tracker.dart
 │   └── ...
 ├── utils/            # Utility functions and helpers
 │   └── routes.dart
@@ -255,7 +258,9 @@ The app connects to a Spring Boot backend with the following endpoints:
 
 ### **Delivery Tracking**
 - `GET /deliveries/{orderId}` - Get delivery info
-- `PUT /deliveries/{orderId}/location` - Update delivery location
+- `GET /deliveries/track/{orderId}` - Track delivery (REST polling)
+- `PUT /deliveries/{deliveryId}/driver-location` - Update driver GPS location with lat/lng
+- `PUT /deliveries/{orderId}/location` - Update delivery location (legacy)
 
 ## 🎯 **Key Features**
 
@@ -279,10 +284,14 @@ The app connects to a Spring Boot backend with the following endpoints:
 - Cancellation support with reason tracking
 
 ### **🚚 Delivery Tracking**
-- Live delivery status updates
+- Live delivery status updates via WebSocket
+- Real-time driver GPS location tracking (latitude/longitude)
 - Driver information and contact options
-- GPS tracking integration ready
+- Interactive location tracker widget with map integration
+- Delivery destination display (from checkout address)
+- Route visualization from driver to delivery destination
 - Estimated delivery time calculations
+- "View Route on Map" functionality with Google Maps directions
 
 ### **🎨 Modern UI/UX**
 - Material Design 3 with dynamic theming
