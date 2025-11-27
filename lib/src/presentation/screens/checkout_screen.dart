@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'package:restaurant_store_flutter/src/core/constants/app_constants.dart';
@@ -12,6 +13,7 @@ import 'package:restaurant_store_flutter/src/presentation/widgets/cached_app_ima
 import 'package:restaurant_store_flutter/src/presentation/widgets/cart_icon_button.dart';
 import 'package:restaurant_store_flutter/src/presentation/widgets/custom_button.dart';
 import 'package:restaurant_store_flutter/src/presentation/widgets/custom_text_field.dart';
+import 'package:restaurant_store_flutter/src/presentation/widgets/location_picker.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -30,6 +32,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String _orderType = 'DELIVERY';
   String _paymentMethod = 'cash_on_delivery';
   bool _prefilled = false;
+  LatLng? _selectedLocation;
+  double? _deliveryLatitude;
+  double? _deliveryLongitude;
 
   @override
   void didChangeDependencies() {
@@ -52,6 +57,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _addressController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openLocationPicker() async {
+    final result = await Navigator.push<LocationResult>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LocationPicker(
+          initialLocation: _selectedLocation,
+          initialAddress: _addressController.text.trim(),
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedLocation = LatLng(result.latitude, result.longitude);
+        _deliveryLatitude = result.latitude;
+        _deliveryLongitude = result.longitude;
+        _addressController.text = result.address;
+      });
+    }
   }
 
   @override
@@ -119,20 +145,73 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           const SizedBox(height: 12),
                           _buildOrderTypeSelector(),
                           const SizedBox(height: 12),
-                          if (_orderType == 'DELIVERY')
-                            CustomTextField(
-                              controller: _addressController,
-                              hint: 'Delivery address',
-                              maxLines: 3,
-                              prefixIcon: const Icon(Icons.location_on_outlined),
-                              validator: (value) {
-                                if (_orderType == 'DELIVERY' && (value ?? '').trim().isEmpty) {
-                                  return AppConstants.addressRequired;
-                                }
-                                return null;
-                              },
+                          if (_orderType == 'DELIVERY') ...[
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: CustomTextField(
+                                    controller: _addressController,
+                                    hint: 'Delivery address',
+                                    maxLines: 3,
+                                    prefixIcon: const Icon(Icons.location_on_outlined),
+                                    validator: (value) {
+                                      if (_orderType == 'DELIVERY' && (value ?? '').trim().isEmpty) {
+                                        return AppConstants.addressRequired;
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
-                          if (_orderType == 'DELIVERY') const SizedBox(height: 12),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: _openLocationPicker,
+                                icon: const Icon(Icons.add_location_alt, size: 20),
+                                label: Text(_selectedLocation != null ? 'Change location on map' : 'Pick location on map'),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  side: BorderSide(
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (_selectedLocation != null) ...[
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on,
+                                      size: 16,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'GPS: ${_deliveryLatitude?.toStringAsFixed(6)}, ${_deliveryLongitude?.toStringAsFixed(6)}',
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 12),
+                          ],
                           CustomTextField(
                             controller: _notesController,
                             hint: 'Add delivery notes (optional)',
