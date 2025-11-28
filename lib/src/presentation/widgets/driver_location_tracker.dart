@@ -192,13 +192,13 @@ class DriverLocationTracker extends StatelessWidget {
     final String message;
     
     if (deliveryAddress != null && deliveryAddress!.isNotEmpty) {
-      // Google Maps directions: from driver location to delivery address
+      // OpenStreetMap directions: from driver location to delivery address
       final encodedAddress = Uri.encodeComponent(deliveryAddress!);
-      url = 'https://www.google.com/maps/dir/?api=1&origin=$lat,$lng&destination=$encodedAddress';
+      url = 'https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=$lat%2C$lng%3B$encodedAddress';
       message = 'View route from driver to delivery address';
     } else {
-      // Just show driver location
-      url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+      // Just show driver location on OpenStreetMap
+      url = 'https://www.openstreetmap.org/?mlat=$lat&mlon=$lng#map=15/$lat/$lng';
       message = 'View driver location on map';
     }
 

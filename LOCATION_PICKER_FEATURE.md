@@ -2,12 +2,12 @@
 
 ## Overview
 
-This feature allows users to select their delivery location using an interactive Google Maps interface during checkout. Users can pick their precise delivery location by dropping a pin on the map, which automatically converts to a formatted address.
+This feature allows users to select their delivery location using an interactive Leaflet/OpenStreetMap interface during checkout. Users can pick their precise delivery location by dropping a pin on the map, which automatically converts to a formatted address.
 
 ## Features
 
 ### 1. Interactive Map Location Picker
-- **Visual map interface** using Google Maps
+- **Visual map interface** using Leaflet with OpenStreetMap tiles
 - **Current location detection** - Users can quickly use their current GPS location
 - **Tap to select** - Simply tap anywhere on the map to set delivery location
 - **Draggable marker** - Fine-tune the location by dragging the pin
@@ -40,13 +40,14 @@ This feature allows users to select their delivery location using an interactive
 ## Technical Implementation
 
 ### Dependencies Added
-- `google_maps_flutter: ^2.5.0` - Interactive map widget
+- `flutter_map: ^6.1.0` - Interactive Leaflet map widget for Flutter
+- `latlong2: ^0.9.0` - Latitude/longitude data structures
 - `geolocator: ^10.1.0` - GPS location services
 - `geocoding: ^2.1.1` - Address from coordinates conversion
 
 ### New Files
 - `lib/src/presentation/widgets/location_picker.dart` - Main location picker widget
-- `GOOGLE_MAPS_SETUP.md` - Google Maps API key setup instructions
+- `LEAFLET_MAPS_SETUP.md` - Map setup and tile provider information
 - `LOCATION_PICKER_FEATURE.md` - This documentation
 
 ### Modified Files
@@ -54,12 +55,10 @@ This feature allows users to select their delivery location using an interactive
 - `pubspec.yaml` - Added map and location dependencies
 - `android/app/src/main/AndroidManifest.xml` - Added location permissions
 - `ios/Runner/Info.plist` - Added location usage descriptions
-- `ios/Runner/AppDelegate.swift` - Added Google Maps initialization
-- `.env.example` - Added Google Maps API key placeholder
 
 ### Data Storage
 The checkout screen now stores:
-- `_selectedLocation: LatLng?` - Selected coordinates
+- `_selectedLocation: LatLng?` - Selected coordinates (from latlong2 package)
 - `_deliveryLatitude: double?` - Latitude value
 - `_deliveryLongitude: double?` - Longitude value
 - `_addressController.text` - Human-readable address
@@ -68,53 +67,25 @@ The checkout screen now stores:
 
 ### Android
 1. Location permissions added to AndroidManifest.xml
-2. Google Maps API key placeholder added
-3. Internet permission included
+2. Internet permission included
 
 ### iOS
 1. Location usage descriptions added to Info.plist
-2. Google Maps SDK initialization in AppDelegate
-3. API key placeholder configured
+2. No additional SDK initialization required
 
 ## Setup Instructions
 
-### 1. Get Google Maps API Key
-- Visit [Google Cloud Console](https://console.cloud.google.com/)
-- Create/select project
-- Enable required APIs:
-  - Maps SDK for Android
-  - Maps SDK for iOS
-  - Geocoding API
-- Create API Key
-
-### 2. Configure API Key
-
-**Android:** Update `/android/app/src/main/AndroidManifest.xml`
-```xml
-<meta-data
-    android:name="com.google.android.geo.API_KEY"
-    android:value="YOUR_ACTUAL_API_KEY" />
-```
-
-**iOS:** Update `/ios/Runner/AppDelegate.swift`
-```swift
-GMSServices.provideAPIKey("YOUR_ACTUAL_API_KEY")
-```
-
-**Environment:** Update `.env`
-```env
-GOOGLE_MAPS_API_KEY=your-google-maps-api-key
-```
-
-### 3. Install Dependencies
+### 1. Install Dependencies
 ```bash
 flutter pub get
 ```
 
-### 4. Run App
+### 2. Run App
 ```bash
 flutter run
 ```
+
+**No API keys required!** The app uses OpenStreetMap tiles which are free and don't require authentication.
 
 ## Location Permissions
 
@@ -133,7 +104,7 @@ The app explains location usage:
 
 ### Location Picker Screen
 - **App bar** with title and current location button
-- **Full-screen map** showing selected area
+- **Full-screen map** showing selected area with OpenStreetMap tiles
 - **Draggable marker** at selected position
 - **Bottom sheet** showing:
   - Location icon
@@ -152,19 +123,30 @@ The feature handles:
 - **Location permission denied** - Shows error message
 - **Location services disabled** - Prompts user to enable
 - **Geocoding failures** - Falls back to GPS coordinates
-- **No internet connection** - Map may not load, but coordinates still work
-- **Invalid API key** - Shows development watermark on map
+- **No internet connection** - Map tiles may not load, but coordinates still work
 
-## Testing Without API Key
+## Map Tiles
 
-The app can be tested without a valid API key:
-- Map tiles won't load properly
-- "For development purposes only" watermark appears
-- Location selection still works
-- GPS coordinates are still accurate
-- Geocoding may fail
+### Default Provider
+The app uses OpenStreetMap tiles by default:
+```
+https://tile.openstreetmap.org/{z}/{x}/{y}.png
+```
 
-For better testing experience, use a development API key.
+### Alternative Tile Providers
+You can easily switch to other providers by changing the `urlTemplate` in `location_picker.dart`. See `LEAFLET_MAPS_SETUP.md` for options like:
+- Mapbox (requires token)
+- Stadia Maps (requires key)
+- CartoDB (free, no key)
+
+## Advantages Over Google Maps
+
+1. **No API key required** - Works immediately without configuration
+2. **No usage limits** - OpenStreetMap tiles are free without quotas
+3. **Open source** - Fully customizable and transparent
+4. **Multiple providers** - Easy to switch between different tile sources
+5. **Privacy** - No tracking or data collection by default
+6. **No costs** - Completely free for any usage level
 
 ## Future Enhancements
 
@@ -175,8 +157,8 @@ Potential improvements:
 - Integration with delivery time estimation
 - Support for multiple delivery addresses
 - Address search/autocomplete
-- Map style customization
-- Offline map support
+- Custom map styles
+- Offline map support with cached tiles
 
 ## Benefits
 
@@ -186,3 +168,4 @@ Potential improvements:
 4. **Better UX** - Modern, interactive interface
 5. **Driver assistance** - Exact coordinates help delivery drivers
 6. **Flexibility** - Works even with informal addresses
+7. **Zero cost** - No API fees or usage limits

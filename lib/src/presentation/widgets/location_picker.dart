@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:restaurant_store_flutter/src/core/utils/snackbar_helper.dart';
 import 'package:restaurant_store_flutter/src/presentation/widgets/custom_button.dart';
 
@@ -33,12 +35,11 @@ class LocationPicker extends StatefulWidget {
 }
 
 class _LocationPickerState extends State<LocationPicker> {
-  GoogleMapController? _mapController;
+  final MapController _mapController = MapController();
   LatLng _selectedLocation = const LatLng(11.5564, 104.9282); // Phnom Penh default
   String _address = '';
   bool _isLoadingAddress = false;
   bool _isLoadingCurrentLocation = false;
-  Set<Marker> _markers = {};
 
   @override
   void initState() {
@@ -46,7 +47,6 @@ class _LocationPickerState extends State<LocationPicker> {
     if (widget.initialLocation != null) {
       _selectedLocation = widget.initialLocation!;
       _address = widget.initialAddress ?? '';
-      _updateMarker();
     } else {
       _getCurrentLocation();
     }
@@ -54,7 +54,7 @@ class _LocationPickerState extends State<LocationPicker> {
 
   @override
   void dispose() {
-    _mapController?.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 
@@ -82,10 +82,7 @@ class _LocationPickerState extends State<LocationPicker> {
         _isLoadingCurrentLocation = false;
       });
 
-      _updateMarker();
-      _mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(newLocation, 15),
-      );
+      _mapController.move(newLocation, 15);
       _getAddressFromLatLng(newLocation);
     } catch (e) {
       setState(() {
@@ -146,24 +143,6 @@ class _LocationPickerState extends State<LocationPicker> {
     return true;
   }
 
-  void _updateMarker() {
-    setState(() {
-      _markers = {
-        Marker(
-          markerId: const MarkerId('selected_location'),
-          position: _selectedLocation,
-          draggable: true,
-          onDragEnd: (newPosition) {
-            setState(() {
-              _selectedLocation = newPosition;
-            });
-            _getAddressFromLatLng(newPosition);
-          },
-        ),
-      };
-    });
-  }
-
   Future<void> _getAddressFromLatLng(LatLng position) async {
     setState(() {
       _isLoadingAddress = true;
@@ -198,11 +177,10 @@ class _LocationPickerState extends State<LocationPicker> {
     }
   }
 
-  void _onMapTap(LatLng position) {
+  void _onMapTap(TapPosition tapPosition, LatLng position) {
     setState(() {
       _selectedLocation = position;
     });
-    _updateMarker();
     _getAddressFromLatLng(position);
   }
 
@@ -243,20 +221,51 @@ class _LocationPickerState extends State<LocationPicker> {
       ),
       body: Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: _selectedLocation,
-              zoom: 15,
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: _selectedLocation,
+              initialZoom: 15,
+              onTap: _onMapTap,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all,
+              ),
             ),
-            onMapCreated: (controller) {
-              _mapController = controller;
-            },
-            onTap: _onMapTap,
-            markers: _markers,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.example.restaurant_store_flutter',
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: _selectedLocation,
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.topCenter,
+                    child: GestureDetector(
+                      onPanUpdate: (details) {
+                        final offset = details.localPosition;
+                        final point = _mapController.camera.pointToLatLng(
+                          math.Point(offset.dx, offset.dy),
+                        );
+                        setState(() {
+                          _selectedLocation = point;
+                        });
+                      },
+                      onPanEnd: (details) {
+                        _getAddressFromLatLng(_selectedLocation);
+                      },
+                      child: Icon(
+                        Icons.location_on,
+                        size: 40,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
           Positioned(
             left: 0,
